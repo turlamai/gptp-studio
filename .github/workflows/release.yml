@@ -28,6 +28,22 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - name: Verify updater signer before packaging or publishing
+        shell: bash
+        env:
+          UPDATER_PRIVATE_KEY: ${{ secrets.UPDATER_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "${UPDATER_PRIVATE_KEY:-}" || {
+            echo "::error::Missing UPDATER_PRIVATE_KEY; refusing to build a release without a trusted update signer"
+            exit 1
+          }
+          umask 077
+          key_dir="$(mktemp -d)"
+          trap 'rm -rf "$key_dir"' EXIT
+          printf '%s\n' "$UPDATER_PRIVATE_KEY" > "$key_dir/signer.pem"
+          bash scripts/check-update-signing-key.sh "$key_dir/signer.pem"
+
       - name: Verify tag and app version alignment
         shell: bash
         run: |
@@ -161,6 +177,23 @@ jobs:
           # Two-space text form (no binary-mode "*" rows).
           cat *.sha256 | sed 's/ \*/  /' > SHA256SUMS
           sha256sum --check --quiet SHA256SUMS
+
+      # The publishing job loads the signing secret independently of the
+      # verify job. Recheck it BEFORE assets become publicly visible.
+      - name: Revalidate update signer before publishing assets
+        env:
+          UPDATER_PRIVATE_KEY: ${{ secrets.UPDATER_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "${UPDATER_PRIVATE_KEY:-}" || {
+            echo "::error::Missing UPDATER_PRIVATE_KEY; cannot publish an unupdatable release"
+            exit 1
+          }
+          umask 077
+          key_dir="$(mktemp -d)"
+          trap 'rm -rf "$key_dir"' EXIT
+          printf '%s\n' "$UPDATER_PRIVATE_KEY" > "$key_dir/signer.pem"
+          bash scripts/check-update-signing-key.sh "$key_dir/signer.pem"
 
       - name: Attach to the release
         uses: softprops/action-gh-release@v2
