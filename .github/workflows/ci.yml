@@ -25,6 +25,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Offline updater signer trust-root regression
+        run: |
+          bash -n scripts/check-update-signing-key.sh
+          bash scripts/check-update-signing-key.sh --self-test
+
       # The GTK4 host embeds Racket CS; no Linux distribution ships the
       # static libracketcs plus boot layout the embedder needs, so the
       # runner uses Rivet's checksum-pinned embeddable runtime build.
