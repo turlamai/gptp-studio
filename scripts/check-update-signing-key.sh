@@ -35,7 +35,8 @@ self_test() {
   local temporary
   temporary="$(mktemp -d)"
   chmod 700 "$temporary"
-  trap 'rm -rf "$temporary"' EXIT
+  # Capture the temp path now: EXIT runs after the function-local is gone.
+  trap "rm -rf -- '$temporary'" EXIT
   # Check the real shipped trust root has valid OpenSSL Ed25519 SPKI shape.
   openssl pkey -pubin -in "$public" -pubout -outform DER \
     > "$temporary/shipped.der" 2>/dev/null
@@ -50,11 +51,11 @@ self_test() {
   openssl genpkey -algorithm Ed25519 -out "$temporary/wrong.pem" >/dev/null 2>&1
   printf 'invalid private key\n' > "$temporary/invalid.pem"
   verify_pair "$temporary/valid.pem" "$temporary/valid-public.pem"
-  if verify_pair "$temporary/wrong.pem" "$temporary/valid-public.pem"; then
+  if verify_pair "$temporary/wrong.pem" "$temporary/valid-public.pem" 2>/dev/null; then
     echo "error: mismatched private key was accepted" >&2
     return 1
   fi
-  if verify_pair "$temporary/invalid.pem" "$temporary/valid-public.pem"; then
+  if verify_pair "$temporary/invalid.pem" "$temporary/valid-public.pem" 2>/dev/null; then
     echo "error: malformed private key was accepted" >&2
     return 1
   fi
