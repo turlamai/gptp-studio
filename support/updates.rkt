@@ -175,14 +175,14 @@
 ;; ---- feed location -------------------------------------------------------------
 
 (define releases-page-url
-  "https://github.com/turinglambdaai/gptp-studio/releases/latest")
+  "https://github.com/turlamai/gptp-studio/releases/latest")
 
 ;; The signed feed lives on the repo's main branch; raw.githubusercontent
 ;; serves it over HTTPS like any file server. A release regenerates and
 ;; commits it last ("feed: x.y.z") — that commit is what makes the check
 ;; fire for older installs.
 (define update-manifest-url
-  "https://raw.githubusercontent.com/turinglambdaai/gptp-studio/main/update-stable.json")
+  "https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json")
 
 ;; ---- install shape -------------------------------------------------------------
 
