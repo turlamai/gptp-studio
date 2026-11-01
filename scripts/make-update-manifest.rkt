@@ -42,7 +42,7 @@
 ;; caller's cwd (the Release workflow and tests run from different roots).
 (define-runtime-path repo-root "..")
 
-(define default-base-url "https://github.com/turinglambdaai/gptp-studio")
+(define default-base-url "https://github.com/turlamai/gptp-studio")
 (define feed-key-id "gptp-studio-2026-10")
 (define feed-application-id "site.jrtx.gptp-studio")
 (define feed-channel 'stable)

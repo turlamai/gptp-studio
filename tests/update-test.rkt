@@ -88,12 +88,12 @@
    app-update-identifier "9.9.9" 1 'stable
    "2026-10-13T00:00:00Z" "0.0.0" #f #t 100
    (list (update-artifact (platform-symbol) (architecture-symbol)
-                          "https://github.com/turinglambdaai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-amd64.deb"
+                          "https://github.com/turlamai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-amd64.deb"
                           (sha256-file/hex artifact-file)
                           (file-size artifact-file)
                           'deb '() 'app)
          (update-artifact (platform-symbol) (architecture-symbol)
-                          "https://github.com/turinglambdaai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-x64.tar.gz"
+                          "https://github.com/turlamai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-x64.tar.gz"
                           (sha256-file/hex artifact-file)
                           (file-size artifact-file)
                           'targz '() 'app))))
@@ -176,6 +176,9 @@
                                             (pick-artifact verified #:system-install? #t))))
 (check-equal? (hash-ref info 'version) "9.9.9")
 (check-equal? (hash-ref info 'url) releases-page-url)
+(check-equal? releases-page-url "https://github.com/turlamai/gptp-studio/releases/latest")
+(check-equal? update-manifest-url
+              "https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json")
 
 ;; ---- staged-name asset derivation -------------------------------------------------
 ;; The staged name derives from the feed entry's URL basename — the release
@@ -185,9 +188,9 @@
 (define (staged-path-for-url url)
   (build-path (update-stage-dir) (file-name-from-path (string->path url))))
 
-(for ([pair (list (cons "https://github.com/turinglambdaai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-amd64.deb"
+(for ([pair (list (cons "https://github.com/turlamai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-amd64.deb"
                         "gptp-studio-9.9.9-linux-amd64.deb")
-                  (cons "https://github.com/turinglambdaai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-arm64.tar.gz"
+                  (cons "https://github.com/turlamai/gptp-studio/releases/download/v9.9.9/gptp-studio-9.9.9-linux-arm64.tar.gz"
                         "gptp-studio-9.9.9-linux-arm64.tar.gz"))])
   (define url (car pair))
   (define artifact
