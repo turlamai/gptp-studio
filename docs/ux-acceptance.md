@@ -48,6 +48,7 @@ or substitute CLI output for the GUI interaction.
 - [ ] Missing dependency, failed startup, denied start, failed export and recovery; preserve user context and any existing healthy session.
 - [ ] Keyboard reachability, names/roles, focus return and readable layouts at declared supported window sizes and enlarged text; new screenshots of the actual artifact.
 - [ ] Free export and report refusal/import/recovery follow current policy; distinguish authenticated release-time update eligibility from the current date.
+- [ ] Close through the native window control and confirm process exit 0 within 30 seconds. Record `process-exit.json`; an aborted process, timeout or signal-based cleanup cannot pass this shutdown gate. This checks a prerequisite for update/restart, not a complete released N→N+1 update.
 
 Physical NIC/PHC, hardware timestamps, actual privileges, reference clocks and
 timing accuracy require the separate [hardware qualification](hardware-qualification.md)

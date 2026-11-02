@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Native Linux acceptance now requests normal window close and requires bounded exit 0, instead of ignoring signal-cleanup failures. 原生Linux验收不再忽略清理时的异常退出，要求窗口正常关闭并记录限时退出证据。
 - Portable updates recognize the actual flat Rivet release layout, retaining older `bin/` layouts. Reject incomplete, empty, linked or ambiguous payloads and prepare launch permissions before changing the current install or its previous backup. 便携更新识别当前 Rivet 平铺目录，保留旧布局支持；无效载荷在替换安装或删除旧备份前被拒绝。
 
 ### Changed
