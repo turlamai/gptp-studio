@@ -475,6 +475,77 @@
     #:exists 'truncate)
   root)
 
+(test-case "incomplete tarball is rejected before deleting any install or prior backup"
+  (define build-dir (make-temporary-file "gptp-incomplete~a" 'directory))
+  (define top (build-path build-dir "gptp-studio-distributed"))
+  (make-directory* (build-path top "bin"))
+  (define tar-path (build-path keydir "gptp-incomplete.tar.gz"))
+  (check-equal? (system*/exit-code
+                 (or (find-executable-path "tar") (string->path "/usr/bin/tar"))
+                 "-czf" tar-path "-C" build-dir "gptp-studio-distributed") 0)
+  (define root (fake-install-root!))
+  (define backup (path-add-extension root ".old"))
+  (make-directory* backup)
+  (call-with-output-file (build-path backup "known-good.txt")
+    (lambda (out) (display "PREVIOUS" out)))
+  (dynamic-wind
+    void
+    (lambda ()
+      (check-exn #rx"payload"
+                 (lambda () (tarball-apply! tar-path #:exe (build-path root "bin" "gptp-studio"))))
+      (check-true (file-exists? (build-path root "bin" "gptp-studio")))
+      (when (file-exists? (build-path root "bin" "gptp-studio"))
+        (check-equal? (file->string (build-path root "bin" "gptp-studio")) "OLD"))
+      (check-true (file-exists? (build-path backup "known-good.txt")))
+      (when (file-exists? (build-path backup "known-good.txt"))
+        (check-equal? (file->string (build-path backup "known-good.txt")) "PREVIOUS")))
+    (lambda ()
+      (delete-directory/files (path-only root))
+      (delete-directory/files build-dir)
+      (delete-file tar-path))))
+
+(test-case "empty, linked and ambiguous launch payloads preserve install and backup"
+  (for ([kind (in-list '(empty linked multiple))])
+    (define build-dir (make-temporary-file "gptp-bad-layout~a" 'directory))
+    (define top (build-path build-dir "payload"))
+    (make-directory* (build-path top "bin"))
+    (make-directory* (build-path top "runtime"))
+    (define outside (make-temporary-file "gptp-outside~a"))
+    (call-with-output-file outside (lambda (out) (display "OUTSIDE" out)) #:exists 'truncate)
+    (file-or-directory-permissions outside #o600)
+    (call-with-output-file (build-path top "runtime" "petite.boot")
+      (lambda (out) (display "boot" out)))
+    (if (eq? kind 'linked)
+        (make-file-or-directory-link outside (build-path top "bin" "gptp-studio"))
+        (call-with-output-file (build-path top "bin" "gptp-studio")
+          (lambda (out) (unless (eq? kind 'empty) (display "exe" out)))))
+    (when (eq? kind 'multiple) (make-directory* (build-path build-dir "extra")))
+    (define tar-path (build-path keydir "gptp-bad-layout.tar.gz"))
+    (check-equal?
+     (apply system*/exit-code
+            (or (find-executable-path "tar") (string->path "/usr/bin/tar"))
+            "-czf" tar-path "-C" build-dir
+            (if (eq? kind 'multiple) '("payload" "extra") '("payload"))) 0)
+    (define root (fake-install-root!))
+    (define backup (path-add-extension root ".old"))
+    (make-directory* backup)
+    (call-with-output-file (build-path backup "known-good.txt")
+      (lambda (out) (display "PREVIOUS" out)))
+    (dynamic-wind
+      void
+      (lambda ()
+        (check-exn #rx"payload"
+                   (lambda () (tarball-apply! tar-path #:exe (build-path root "bin" "gptp-studio"))))
+        (check-equal? (file->string (build-path root "bin" "gptp-studio")) "OLD")
+        (check-equal? (file->string (build-path backup "known-good.txt")) "PREVIOUS")
+        (check-equal? (file->string outside) "OUTSIDE")
+        (check-equal? (file-or-directory-permissions outside 'bits) #o600))
+      (lambda ()
+        (delete-directory/files (path-only root))
+        (delete-directory/files build-dir)
+        (delete-file outside)
+        (delete-file tar-path)))))
+
 (test-case "tarball apply swaps the payload in place, #o755 executables, .old kept"
   (define tar-path (build-path keydir "gptp-studio-9.9.9-linux-x64.tar.gz"))
   (make-payload-tarball! tar-path 55)
@@ -509,6 +580,35 @@
                (tarball-apply! (build-path keydir "no-such.tar.gz")
                                #:exe (build-path keydir "nowhere" "bin" "gptp-studio")))
              "no derivable payload root -> clean error"))
+
+(test-case "current flat Rivet release layout can update a flat installed payload"
+  (define build-dir (make-temporary-file "gptp-flat-payload~a" 'directory))
+  (define top (build-path build-dir "gptp-studio-linux-x64"))
+  (make-directory* (build-path top "res"))
+  (make-directory* (build-path top "runtime"))
+  (for ([entry (in-list '("gptp-studio" "res/core.zo" "runtime/petite.boot"))])
+    (call-with-output-file (build-path top entry) (lambda (out) (display "NEW" out))))
+  (define tar-path (build-path keydir "gptp-flat.tar.gz"))
+  (check-equal? (system*/exit-code
+                 (or (find-executable-path "tar") (string->path "/usr/bin/tar"))
+                 "-czf" tar-path "-C" build-dir "gptp-studio-linux-x64") 0)
+  (define parent (make-temporary-file "gptp-flat-install~a" 'directory))
+  (define root (build-path parent "gptp-studio-linux-x64"))
+  (make-directory* (build-path root "res"))
+  (for ([entry (in-list '("gptp-studio" "res/core.zo"))])
+    (call-with-output-file (build-path root entry) (lambda (out) (display "OLD" out))))
+  (dynamic-wind
+    void
+    (lambda ()
+      (check-equal? (payload-root #:exe (build-path root "gptp-studio")) root)
+      (check-equal? (tarball-apply! tar-path #:exe (build-path root "gptp-studio")) root)
+      (check-equal? (file->string (build-path root "gptp-studio")) "NEW")
+      (check-equal? (file-or-directory-permissions (build-path root "gptp-studio") 'bits) #o755)
+      (check-equal? (file->string (build-path (path-add-extension root ".old") "gptp-studio")) "OLD"))
+    (lambda ()
+      (delete-directory/files parent)
+      (delete-directory/files build-dir)
+      (delete-file tar-path))))
 
 ;; ---- feed-script contract --------------------------------------------------------
 ;; the release pipeline's signer must produce a wrapper the shipped verifier

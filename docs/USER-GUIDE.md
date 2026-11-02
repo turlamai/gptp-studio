@@ -36,6 +36,8 @@ Simulator/CI evidence does not qualify a NIC, hardware timestamps, linuxptp inte
 
 Back up data and read the destination release notes first. An in-app update check does not necessarily install an update for your channel; follow the manual for portable, installer and source paths. Never bypass a failed signature check or replace the program with an untrusted artifact. On failure, preserve data and the error, then recover with a trusted release. Removing the program does not necessarily erase its separate data directory; verify your backup before deleting personal data.
 
+Portable tarball updates recognize the current Rivet directory layout as well as older `bin/` installations. An incomplete or ambiguous payload is rejected before changing the current installation or its previous backup. A successful layout check alone does not prove that the restarted application is healthy.
+
 ## Get help
 
 Report problems in [GitHub Issues](https://github.com/turlamai/gptp-studio/issues), in English or Chinese. Include the version, OS/architecture, installation channel, steps, expected result and actual result. Reproduce with synthetic input first; do not attach keys, credentials, databases, private source documents or complete logs. Public support has no guaranteed response time.

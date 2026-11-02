@@ -2,6 +2,10 @@
 
 ## Unreleased（未发布）
 
+### Fixed
+
+- Portable updates recognize the actual flat Rivet release layout, retaining older `bin/` layouts. Reject incomplete, empty, linked or ambiguous payloads and prepare launch permissions before changing the current install or its previous backup. 便携更新识别当前 Rivet 平铺目录，保留旧布局支持；无效载荷在替换安装或删除旧备份前被拒绝。
+
 ### Changed
 
 - **原生主控件双语化（issue #40 语言一致性切片）**：GTK 宿主
