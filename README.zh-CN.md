@@ -51,11 +51,22 @@ gPTP Studio 现在明确定位为 **Linux-only 产品**。原因不是 UI 能不
 
 ## 安装
 
+从[对应版本的 GitHub Release](https://github.com/turlamai/gptp-studio/releases/latest)
+选择与 Linux 架构、安装方式一致的**带版本号附件**。例如 `v0.4.0`
+发布 `gptp-studio-0.4.0-linux-amd64.deb`、
+`gptp-studio-0.4.0-linux-x64.tar.gz` 和
+`gptp-studio-0.4.0-linux-x86_64.AppImage`。
+`gptp-studio-linux-amd64.deb` 等无版本号副本只是便捷别名，
+**不能**作为固定版本身份。为保证安装可复现，文档及 CI 应固定
+Release tag、带版本的文件名，并核对该版本提供的校验和。
+
 ### Debian / Ubuntu 包
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-amd64.deb
-sudo apt install ./gptp-studio-linux-amd64.deb
+TAG=v0.4.0  # 以 Releases 页面上需要安装的版本为准
+VERSION="${TAG#v}"
+curl -fLO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-amd64.deb"
+sudo apt install "./gptp-studio-$VERSION-linux-amd64.deb"
 /opt/gptp-studio/gptp-studio --doctor
 /opt/gptp-studio/gptp-studio
 ```
@@ -68,8 +79,10 @@ deb 安装到 `/opt/gptp-studio` 并带桌面入口；上面的命令分别是�
 ### 可移植 tarball
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-x64.tar.gz
-tar -xzf gptp-studio-linux-x64.tar.gz
+TAG=v0.4.0  # 以 Releases 页面上需要安装的版本为准
+VERSION="${TAG#v}"
+curl -fLO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-x64.tar.gz"
+tar -xzf "gptp-studio-$VERSION-linux-x64.tar.gz"
 cd gptp-studio-distributed
 ./bin/gptp-studio --doctor
 ./bin/gptp-studio
@@ -92,10 +105,12 @@ AppImage 自带 GTK4 依赖闭包，比 deb/rpm 能跑在更老的宿主上；GU
 同样可以走 `--doctor` 无头面：
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-x64.AppImage
-chmod +x gptp-studio-linux-x64.AppImage
-./gptp-studio-linux-x64.AppImage --doctor
-./gptp-studio-linux-x64.AppImage
+TAG=v0.4.0  # 以 Releases 页面上需要安装的版本为准
+VERSION="${TAG#v}"
+curl -fLO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-x86_64.AppImage"
+chmod +x "gptp-studio-$VERSION-linux-x86_64.AppImage"
+"./gptp-studio-$VERSION-linux-x86_64.AppImage" --doctor
+"./gptp-studio-$VERSION-linux-x86_64.AppImage"
 ```
 
 ### 源码运行
@@ -117,7 +132,25 @@ raco rivet dev            # 运行应用；构建出的二进制同样支持 --d
 
 ### 更新检查
 
-启动约 2.5 秒后，应用会在后台取一次 Ed25519 签名的更新清单（`update-stable.json`，托管在本仓库主分支；先对二进制内置公钥验证签名，通过后才解析内容），发现新版本时在顶栏显示 `⬇ 版本号` 胶囊（点击打开发布页）。**不做自动安装**——暂存更新按签名清单的 size/摘要边界下载产物，应用走 `pkexec` 执行 `apt-get install`，装什么由操作者决定。签名清单切换点之前的安装（≤ 1.2.0）拉取的旧 `latest.json` 已退役，需要手动更新一次（从 Releases 下载 deb 安装）。气隙主机可用 `--no-update-check` 完全关闭这一网络接触，或用 `GPTP_UPDATE_MANIFEST_URL` 指向自建的 HTTPS 镜像（签名方案拒绝明文 HTTP）。
+Linux 更新渠道使用 Ed25519 签名的
+[`update-stable.json` 清单](update-stable.json)。启动后可能执行静默检查
+（最长每四小时一次）；手动**检查更新**可以绕过该节流。网络失败或签名错误
+不得触发未验证的安装。发现新版本后，下载与应用都需要用户同意；
+**不会在后台自动安装更新**。
+
+安装行为取决于原来的包形态：
+
+- **`.deb`**：暂存已验证的带版本号安装包，向操作者展示明确的
+  `sudo apt-get install` 安装命令；同意后可选择由 `pkexec` 发起授权安装。
+- **可移植 `.tar.gz`**：先验证包布局，再保护性替换；失败时尝试恢复
+  旧 payload，并要求重启应用。
+- **AppImage**：通过 Releases 手动下载新版本的带版本号 AppImage。
+  应用内的安装流程**不负责 AppImage 自动更新**。
+
+气隙主机可使用 `--no-update-check` 禁止启动后的静默检查。
+更新鉴权、失败恢复及安装形态详见
+[Linux 更新契约](docs/update-contract.md)。签名清单与已发布附件本身
+并不能证明每一种安装/重启路径已经通过原生验收。
 
 ## 六页工作区
 
