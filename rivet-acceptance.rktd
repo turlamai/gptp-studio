@@ -34,4 +34,5 @@
              (command . ("bash" "scripts/e2e/e2e-linux.sh"))
              (timeout-seconds . 600)
              (evidence . (".rivet/acceptance/linux/interaction-trace.json"
-                          ".rivet/acceptance/linux/accessibility.json"))))))
+                          ".rivet/acceptance/linux/accessibility.json"
+                          ".rivet/acceptance/linux/process-exit.json"))))))

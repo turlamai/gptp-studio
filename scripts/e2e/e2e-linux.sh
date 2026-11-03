@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$repo/scripts/e2e/wait-app-exit.sh"
 output="$repo/.rivet/acceptance/linux"
 executable="$(find "$repo/dist" -type f -name gptp-studio -perm -u+x -print -quit)"
 home="$output/home-$$"
@@ -46,6 +47,11 @@ stop_bounded() {
 cleanup() {
   local status=$?
   trap - EXIT
+  # A cleanup signal can release a failed test's resources, never turn an
+  # unclosed application into successful shutdown evidence.
+  if [[ "$status" -eq 0 && -n "$app_pid" ]]; then
+    status=1
+  fi
   [[ -n "$app_pid" ]] && kill -0 "$app_pid" 2>/dev/null && stop_bounded "$app_pid" || true
   [[ -n "$atspi_pid" ]] && kill -0 "$atspi_pid" 2>/dev/null && kill -TERM "$atspi_pid" || true
   kill -TERM "$weston_pid" 2>/dev/null || true
@@ -79,8 +85,8 @@ export AT_SPI_BUS_ADDRESS="$(gdbus call --session --dest org.a11y.Bus \
 app_pid=$!
 /usr/bin/python3 "$repo/scripts/e2e/linux-atspi.py" --output "$output"
 
-stop_bounded "$app_pid" || true
-wait "$app_pid" 2>/dev/null || true
+wait_for_clean_app_exit "$app_pid" 30
+printf '{"graceful":true,"exit_code":0,"forced":false}\n' >"$output/process-exit.json"
 app_pid=""
 
 trap - EXIT
