@@ -106,10 +106,38 @@
 ;; (gptp-studio-distributed); the running install root is replaced by
 ;; renames with a <root>.old backup kept until the next swap.
 
-;; The running payload root, or #f when it cannot be derived. The tarball
-;; payload layout is <root>/bin/gptp-studio (the deb's /opt/gptp-studio is
-;; the same layout); a top-level executable next to bin/ is fine too.
+;; The running payload root, or #f when it cannot be derived. Current
+;; Rivet releases have <root>/gptp-studio and res/core.zo; retain the
+;; historical <root>/bin/gptp-studio layout for older installed versions.
 ;; #:exe overrides the executable path so tests can pretend.
+(define (plain-directory? path)
+  (and (directory-exists? path) (not (link-exists? path))))
+
+(define (nonempty-regular-file? path)
+  (and (file-exists? path) (not (link-exists? path)) (> (file-size path) 0)))
+
+(define (flat-payload? root)
+  (and (plain-directory? root)
+       (nonempty-regular-file? (build-path root "gptp-studio"))
+       (plain-directory? (build-path root "res"))
+       (nonempty-regular-file? (build-path root "res" "core.zo"))))
+
+(define (complete-payload? root)
+  (define bin (build-path root "bin"))
+  (define (absent-or-regular? path)
+    (or (not (or (file-exists? path) (directory-exists? path) (link-exists? path)))
+        (nonempty-regular-file? path)))
+  (and (plain-directory? root)
+       (plain-directory? (build-path root "runtime"))
+       (nonempty-regular-file? (build-path root "runtime" "petite.boot"))
+       (or (not (or (file-exists? bin) (directory-exists? bin) (link-exists? bin)))
+           (plain-directory? bin))
+       (absent-or-regular? (build-path root "gptp-studio"))
+       (absent-or-regular? (build-path root "bin" "gptp-studio"))
+       (or (flat-payload? root)
+           (and (plain-directory? (build-path root "bin"))
+                (nonempty-regular-file? (build-path root "bin" "gptp-studio"))))))
+
 (define (payload-root #:exe [exe (find-system-path 'run-file)])
   (define s (and (path? exe) (path->string exe)))
   (define dir
@@ -121,7 +149,8 @@
          (let ([m (regexp-match #px"^(.*)/bin$" dir)])
            (if m (cadr m) dir))))
   (and candidate
-       (directory-exists? (build-path candidate "bin"))
+       (or (directory-exists? (build-path candidate "bin"))
+           (flat-payload? candidate))
        (string->path candidate)))
 
 ;; chmod the launch executables of a payload root. The mode MUST be the
@@ -171,13 +200,16 @@
       (unless (zero? rc)
         (error 'updater "tar extraction failed (exit ~a)" rc)))
     (lambda ()
-      (define top
-        (for/first ([entry (in-list (directory-list extract-dir))]
-                    #:when (directory-exists? (build-path extract-dir entry)))
-          entry))
-      (unless top
-        (error 'updater "the update tarball has no payload directory"))
-      (define new-root (build-path extract-dir top))
+      (define entries (directory-list extract-dir #:build? #t))
+      (unless (and (= (length entries) 1)
+                   (plain-directory? (car entries)))
+        (error 'updater "the update tarball must contain one payload directory"))
+      (define new-root (car entries))
+      (unless (complete-payload? new-root)
+        (error 'updater "the update payload is incomplete or contains linked launch files"))
+      ;; Fail before deleting a prior backup or renaming the running install,
+      ;; including when launch-file permissions cannot be prepared.
+      (chmod-payload-executables! new-root)
       (when (directory-exists? old-root)
         (delete-directory/files old-root))
       (rename-file-or-directory root old-root)
@@ -190,8 +222,7 @@
                   (delete-directory/files root))
                 (rename-file-or-directory old-root root))
               (raise e))])
-        (move-directory! new-root root)
-        (chmod-payload-executables! root))
+        (move-directory! new-root root))
       (delete-directory/files extract-dir)
       root)
     (lambda ()

@@ -53,7 +53,16 @@
 | Install | Feed pick | Download | Apply |
 |---|---|---|---|
 | deb (system install under `/opt` or `/usr`) | `linux/<arch>` `deb` entry | kept at `~/.local/share/gptp-studio/updates/<asset>` | the dialog shows `sudo apt-get install -y <staged deb>`; the optional `安装更新 / Install` button runs the same through `pkexec`, which raises the standard system authentication dialog — nothing installs without the operator's explicit consent |
-| relocatable tarball (everything else) | `linux/<arch>` `targz` entry | same stage dir | in-place swap: extract to a temp dir beside the stage, rename the running payload root to `<root>.old`, move the extracted payload in, chmod the launch executables with the integer mode `#o755`; a failed swap restores `<root>.old` so the previous install always stays runnable; the host then offers `重启应用 / Quit to Restart` |
+| relocatable tarball (everything else) | `linux/<arch>` `targz` entry | same stage dir | in-place swap: extract to a temp dir beside the stage, validate one complete payload and prepare launch permissions, then rename the running payload root to `<root>.old` and move the extracted payload in; a failed swap attempts to restore `<root>.old`; the host then offers `重启应用 / Quit to Restart` |
+
+Current Rivet portable releases use `<root>/gptp-studio`, `res/core.zo` and
+`runtime/petite.boot`; older `<root>/bin/gptp-studio` installations remain
+recognizable. Before replacing the install or deleting a previous backup,
+require exactly one payload directory, nonempty regular launch/runtime files,
+and the flat layout's backend. Reject missing/empty/linked launch files and
+ambiguous roots. Prepare executable modes with integer `#o755` while the payload
+is still staged. This layout check is separate from signed-feed authentication,
+actual process restart, full GUI health and released-version rollback evidence.
 
 The arm64 feed entries are the same shapes (`gptp-studio-<v>-linux-arm64.*`
 assets); `pick-artifact` keys on the running architecture. The AppImage
@@ -64,7 +73,7 @@ shapes only). There is no Windows/macOS channel.
 ## The feed: `update-stable.json`
 
 - Location: the repository's `main` branch
-  (`https://raw.githubusercontent.com/turinglambdaai/gptp-studio/main/update-stable.json`),
+  (`https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json`),
   regenerated and committed by the Release workflow's publish job after the
   assets are attached (`feed: x.y.z`) — that commit is what makes the
   check fire for older installs.

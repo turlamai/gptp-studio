@@ -4,7 +4,6 @@ on:
   push:
     branches: [main, rivet-migration]
   pull_request:
-    branches: [main]
 
 # Preserve every main CI gate even when several commits arrive while
 # GitHub-hosted runners are backlogged. Only superseded runs of the same PR
@@ -24,6 +23,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Native application exit gate regression
+        run: bash scripts/e2e/test-wait-app-exit.sh
 
       - name: Offline updater signer trust-root regression
         run: |

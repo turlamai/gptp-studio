@@ -114,16 +114,19 @@ def main():
     (args.output / "accessibility.json").write_text(
         json.dumps(snapshot(application), ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    close = wait_for("native Close button", lambda: find_named(window, "Close", "push button"))
+    press(close)
     (args.output / "interaction-trace.json").write_text(
         json.dumps(
             {
                 "platform": "linux",
-                "actions": ["press:Start Engine", "press:Stop Engine"],
+                "actions": ["press:Start Engine", "press:Stop Engine", "press:Close"],
                 "assertions": [
                     "packaged GTK4 frame activated on native Wayland",
                     "AT-SPI roles and names exposed",
                     "simulator start mutation reached the embedded backend",
                     "engine State/Event presentation changed to running then stopped",
+                    "normal close requested through the native window control; shell verifies exit",
                 ],
             },
             indent=2,
