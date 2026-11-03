@@ -51,6 +51,15 @@ A NIC reporting hardware timestamping and `/dev/ptpN` means the host has the req
 
 ## Install
 
+Choose the **versioned** asset for the Linux architecture and installation shape
+listed on the [exact GitHub Release](https://github.com/turlamai/gptp-studio/releases/latest).
+For example, release `v0.4.0` publishes `gptp-studio-0.4.0-linux-amd64.deb`,
+`gptp-studio-0.4.0-linux-x64.tar.gz` and
+`gptp-studio-0.4.0-linux-x86_64.AppImage`. Versionless copies such as
+`gptp-studio-linux-amd64.deb` are convenience aliases, **not** fixed-version
+identities. For reproducible installations, documentation and CI, use a specific
+tag, versioned filename and the matching checksum from that release.
+
 ### Debian / Ubuntu package
 
 ```bash
@@ -125,7 +134,30 @@ For real hardware work, start with `gptp-studio --doctor`, fix structural FAIL i
 
 ### Update check
 
-About 2.5s after startup the app fetches the Ed25519-signed update feed once in the background (`update-stable.json`, hosted on this repository's main branch; the signature is verified against the key pinned in the binary before anything else looks at the feed). On a newer release an `⬇ version` pill appears in the header and links to the releases page. **Nothing is installed automatically** — staging the update downloads the artifact under the signed manifest's size/digest bounds, and applying runs `apt-get install` through `pkexec`, so what gets installed stays with the operator. Installs from before the signed-feed switch (≤ 1.2.0) fetched the retired unsigned `latest.json` and must update once manually (download the .deb from Releases). Air-gapped hosts can disable the network contact entirely with `--no-update-check`, or point `GPTP_UPDATE_MANIFEST_URL` at their own HTTPS mirror of the feed (plain HTTP is refused by design).
+The Linux update channel uses an Ed25519-signed
+[`update-stable.json` feed](update-stable.json). A silent check may run
+after launch (throttled to at most once per four hours); the manual
+**Check for Updates** command bypasses that throttle. Invalid signatures
+or network errors must not cause an unverified install. A newer version
+requires the operator's consent to download and apply; **no update is
+automatically installed**.
+
+Installation depends on the existing package shape:
+
+- **`.deb`** — stage the verified versioned `.deb` and present an explicit
+  `sudo apt-get install` handoff, optionally launched through `pkexec`
+  after user consent.
+- **Relocatable `.tar.gz`** — stage and validate the payload layout before
+  a guarded replacement, with recovery of the previous payload on failure
+  and a required application restart.
+- **AppImage** — update manually by downloading the newer versioned
+  AppImage from Releases. The in-app apply path is **not** an AppImage updater.
+
+Air-gapped hosts can disable silent checks with `--no-update-check`.
+See the [Linux update contract](docs/update-contract.md) for expected
+failure/recovery semantics and signing details. A signed feed and a
+published package do not by themselves prove that a particular
+installation's upgrade/restart has passed native acceptance.
 
 ## Pages
 
