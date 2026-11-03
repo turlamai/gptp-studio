@@ -21,6 +21,7 @@
 #include <mutex>
 #include <functional>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <string_view>
@@ -507,6 +508,30 @@ void retranslate_static_labels();
 void on_start_clicked(GtkButton*, gpointer);
 gboolean on_update_auto_check(gpointer);
 
+// Dev-only chart-pipeline probe (issue #43): append one line per batch
+// delivered to the chart widget, so headless verification can assert that
+// real backend batches reach the widget — the acceptance path once
+// exercised only synthetic events and could not see a dead pipeline.
+// Malformed batches are recorded with zero samples instead of vanishing
+// into append_batch's silent drop. Never active in packaged builds (the
+// variable is not set there), matching GPTP_DEV_AUTOSTART.
+void chart_probe_record(std::string const& series, rivet::Bytes const& batch) {
+  const char* path = std::getenv("GPTP_DEV_CHART_PROBE");
+  if (path == nullptr) {
+    return;
+  }
+  std::size_t samples = 0;
+  try {
+    samples = rivet::chart::DecodeBatch(batch).samples.size();
+  } catch (std::runtime_error const&) {
+    samples = 0;
+  }
+  if (FILE* probe = std::fopen(path, "a")) {
+    std::fprintf(probe, "%s %zu\n", series.c_str(), samples);
+    std::fclose(probe);
+  }
+}
+
 int on_backend_finished(gpointer) {
   std::lock_guard lock(g_state.startup_mutex);
   if (!g_state.startup_error.empty()) {
@@ -604,6 +629,7 @@ void start_backend() {
           idle_deliver([envelope] {
             if (g_state.chart) {
               g_state.chart->append_batch(envelope.series, envelope.batch);
+              chart_probe_record(envelope.series, envelope.batch);
             }
           });
         }

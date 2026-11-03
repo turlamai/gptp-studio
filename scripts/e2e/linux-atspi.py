@@ -89,6 +89,11 @@ def snapshot(node, depth=0):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--close-only",
+        action="store_true",
+        help="drive no engine interactions; only request the native close",
+    )
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
 
@@ -99,6 +104,26 @@ def main():
     )
     start = wait_for("Start Engine button", lambda: find_named(window, "Start Engine", "push button"))
     stop = wait_for("Stop Engine button", lambda: find_named(window, "Stop Engine", "push button"))
+
+    if args.close_only:
+        close = wait_for("native Close button", lambda: find_named(window, "Close", "push button"))
+        press(close)
+        (args.output / "close-trace.json").write_text(
+            json.dumps(
+                {
+                    "platform": "linux",
+                    "actions": ["press:Close"],
+                    "assertions": [
+                        "packaged GTK4 frame activated on native Wayland",
+                        "AT-SPI roles and names exposed",
+                        "normal close requested through the native window control; shell verifies exit",
+                    ],
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        return
 
     press(start)
     wait_for(
