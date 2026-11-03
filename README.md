@@ -44,7 +44,7 @@ The product contract is **Linux only**.
 | Real GM / Slave engine | linuxptp (`ptp4l`, `phc2sys`, `pmc`) |
 | Timing hardware | NIC hardware timestamping + PHC (`/dev/ptpN`) |
 | Capture | libpcap, with runtime timestamp-source reporting |
-| Packages | `.deb` / `.rpm` / `.AppImage` and relocatable `.tar.gz` (+ portable `.zip`); every asset ships a `.sha256` sidecar and releases carry an aggregate `SHA256SUMS` |
+| Packages | `.deb` / `.rpm` / `.AppImage` and relocatable `.tar.gz` (+ portable `.zip`); every release carries a single aggregate `SHA256SUMS` covering versioned packages |
 | Other operating systems | Unsupported by product design |
 
 A NIC reporting hardware timestamping and `/dev/ptpN` means the host has the required capability for the linuxptp path. It does **not** by itself prove calibrated end-to-end timing accuracy. Studio keeps capability, runtime timestamp source and any future characterization results separate.
@@ -54,8 +54,10 @@ A NIC reporting hardware timestamping and `/dev/ptpN` means the host has the req
 ### Debian / Ubuntu package
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-amd64.deb
-sudo apt install ./gptp-studio-linux-amd64.deb
+TAG=v0.4.0  # replace with the version shown on the Releases page
+VERSION="${TAG#v}"
+curl -LO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-amd64.deb"
+sudo apt install "./gptp-studio-$VERSION-linux-amd64.deb"
 /opt/gptp-studio/gptp-studio --doctor
 /opt/gptp-studio/gptp-studio
 ```
@@ -68,8 +70,10 @@ The Debian package declares the Linux runtime dependencies and installs the desk
 ### Relocatable tarball
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-x64.tar.gz
-tar -xzf gptp-studio-linux-x64.tar.gz
+TAG=v0.4.0  # replace with the version shown on the Releases page
+VERSION="${TAG#v}"
+curl -LO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-x64.tar.gz"
+tar -xzf "gptp-studio-$VERSION-linux-x64.tar.gz"
 cd gptp-studio-distributed
 ./bin/gptp-studio --doctor
 ./bin/gptp-studio
@@ -94,10 +98,12 @@ hosts than the deb/rpm require; the same `--doctor` headless surface
 works before any GUI session:
 
 ```bash
-curl -LO https://github.com/turlamai/gptp-studio/releases/latest/download/gptp-studio-linux-x64.AppImage
-chmod +x gptp-studio-linux-x64.AppImage
-./gptp-studio-linux-x64.AppImage --doctor
-./gptp-studio-linux-x64.AppImage
+TAG=v0.4.0  # replace with the version shown on the Releases page
+VERSION="${TAG#v}"
+curl -LO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-x86_64.AppImage"
+chmod +x "gptp-studio-$VERSION-linux-x86_64.AppImage"
+"./gptp-studio-$VERSION-linux-x86_64.AppImage" --doctor
+"./gptp-studio-$VERSION-linux-x86_64.AppImage"
 ```
 
 ### From source
