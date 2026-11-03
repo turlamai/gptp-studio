@@ -84,8 +84,8 @@ VERSION="${TAG#v}"
 curl -fLO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-x64.tar.gz"
 tar -xzf "gptp-studio-$VERSION-linux-x64.tar.gz"
 cd gptp-studio-distributed
-./bin/gptp-studio --doctor
-./bin/gptp-studio
+./gptp-studio --doctor
+./gptp-studio
 ```
 
 ### RPM 系发行版
