@@ -122,8 +122,8 @@ gptp-studio --doctor
 gptp-studio</pre><p data-en="Validated on Ubuntu 24.04 LTS. Installs to /opt/gptp-studio, adds /usr/bin/gptp-studio and a desktop entry." data-zh="在 Ubuntu 24.04 LTS 上验证。安装到 /opt/gptp-studio，提供 /usr/bin/gptp-studio 命令与桌面入口。">Validated on Ubuntu 24.04 LTS.</p></div>
         <div class="download-card"><h3 data-en="Relocatable tar.gz" data-zh="Relocatable tar.gz">Relocatable tar.gz</h3><pre class="command">tar -xzf gptp-studio-&lt;version&gt;-linux-x64.tar.gz
 cd &lt;extracted-directory&gt;
-./bin/gptp-studio --doctor
-./bin/gptp-studio</pre><p data-en="Self-contained; installs nothing outside its directory. Useful for lab hosts where the payload should stay outside the package database." data-zh="自包含，不在目录外安装任何内容。适合希望应用 payload 与系统包数据库解耦的实验室主机。">Self-contained; installs nothing outside its directory.</p></div>
+./gptp-studio --doctor
+./gptp-studio</pre><p data-en="Self-contained; installs nothing outside its directory. Useful for lab hosts where the payload should stay outside the package database." data-zh="自包含，不在目录外安装任何内容。适合希望应用 payload 与系统包数据库解耦的实验室主机。">Self-contained; installs nothing outside its directory.</p></div>
         <div class="download-card"><h3 data-en="AppImage (any distribution)" data-zh="AppImage（任意发行版）">AppImage</h3><pre class="command">TAG=v0.4.0  # replace with the tag on the Releases page
 VERSION="${TAG#v}"
 curl -fLO "https://github.com/turlamai/gptp-studio/releases/download/${TAG}/gptp-studio-${VERSION}-linux-x86_64.AppImage"
