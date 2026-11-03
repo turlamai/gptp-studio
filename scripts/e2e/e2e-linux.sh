@@ -89,6 +89,65 @@ wait_for_clean_app_exit "$app_pid" 30
 printf '{"graceful":true,"exit_code":0,"forced":false}\n' >"$output/process-exit.json"
 app_pid=""
 
+# Chart-pipeline phase (issue #43): the start/stop interaction above
+# asserts only the state labels, so a dead chart pipeline ships green —
+# the live-data regression behind issue #43 did exactly that. The dev
+# autostart hook selects the slave role and starts the simulator, and the
+# host records every batch delivered to the chart widget in the probe
+# file, so this phase asserts that both series really stream from the
+# backend through RVT1 into the widget.
+export GPTP_DEV_AUTOSTART=1
+export GPTP_DEV_CHART_PROBE="$output/chart-probe.log"
+: >"$GPTP_DEV_CHART_PROBE"
+"$executable" >"$output/chart-phase.log" 2>&1 &
+app_pid=$!
+
+probe_ok=""
+for _ in $(seq 1 450); do
+  if grep -q '^offset [1-9]' "$GPTP_DEV_CHART_PROBE" \
+    && grep -q '^delay [1-9]' "$GPTP_DEV_CHART_PROBE" \
+    && [[ $(wc -l <"$GPTP_DEV_CHART_PROBE") -ge 10 ]]; then
+    probe_ok=1
+    break
+  fi
+  kill -0 "$app_pid" 2>/dev/null || break
+  sleep 0.1
+done
+if [[ -z "$probe_ok" ]]; then
+  echo "chart pipeline probe failed — batches never reached the widget" >&2
+  cat "$GPTP_DEV_CHART_PROBE" >&2
+  exit 1
+fi
+
+offset_batches=$(grep -c '^offset [1-9]' "$GPTP_DEV_CHART_PROBE" || true)
+delay_batches=$(grep -c '^delay [1-9]' "$GPTP_DEV_CHART_PROBE" || true)
+malformed=$(grep -c ' [0]$' "$GPTP_DEV_CHART_PROBE" || true)
+python3 - "$offset_batches" "$delay_batches" "$malformed" >"$output/chart-pipeline.json" <<'PY'
+import json
+import sys
+
+print(
+    json.dumps(
+        {
+            "platform": "linux",
+            "probe": "GPTP_DEV_CHART_PROBE",
+            "offset_batches_with_samples": int(sys.argv[1]),
+            "delay_batches_with_samples": int(sys.argv[2]),
+            "malformed_batches": int(sys.argv[3]),
+            "assertions": [
+                "simulator slave session started through the dev autostart hook",
+                "offset and delay batches reached the chart widget from the live backend",
+                "no malformed batches recorded",
+            ],
+        }
+    )
+)
+PY
+
+/usr/bin/python3 "$repo/scripts/e2e/linux-atspi.py" --output "$output" --close-only
+wait_for_clean_app_exit "$app_pid" 30
+app_pid=""
+
 trap - EXIT
 kill -TERM "$atspi_pid" "$weston_pid" 2>/dev/null || true
 wait "$atspi_pid" "$weston_pid" 2>/dev/null || true
