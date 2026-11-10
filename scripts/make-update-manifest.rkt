@@ -1,10 +1,11 @@
 #lang racket/base
 
-;; Regenerate the update feed (update-stable.json, the rivet signed
-;; manifest wrapper) from the built release artifacts. The Release workflow
-;; runs this after the assets are published and commits the result to main
-;; ("feed: x.y.z") — that commit is what makes the update check fire for
-;; older installs. It is also the manual tool for rebuilding the feed:
+;; Regenerate the update feed (the rivet signed manifest wrapper) from the
+;; built release artifacts. The Release workflow signs it before any asset
+;; is attached and publishes the result as the update-manifest.json release
+;; asset — clients fetch it through the releases/latest/download alias
+;; (support/updates.rkt). It is also the manual tool for rebuilding the
+;; feed:
 ;;
 ;;   racket scripts/make-update-manifest.rkt \
 ;;     --version 1.3.0 \
@@ -18,10 +19,10 @@
 ;; Wire format: rivet/distribution's signed wrapper (schema + base64
 ;; payload + Ed25519 signature block) — exactly what
 ;; support/updates.rkt's fetch-update-manifest verifies, with key id
-;; gptp-studio-2026-10. The payload carries the artifact urls (stable
-;; releases/latest/download aliases), sizes and lowercase-hex SHA-256
-;; digests; there is no free-form notes field (release notes live on the
-;; release page).
+;; gptp-studio-2026-10. The payload carries the artifact urls (pinned to
+;; the concrete release tag), sizes and lowercase-hex SHA-256 digests;
+;; there is no free-form notes field (release notes live on the release
+;; page).
 ;;
 ;; The private key never touches this repo: the caller materializes it as
 ;; a file (CI: the UPDATER_PRIVATE_KEY Actions secret; locally: the
@@ -53,7 +54,7 @@
 (define deb-arm64-param (make-parameter #f))
 (define tarball-arm64-param (make-parameter #f))
 (define key-param (make-parameter #f))
-(define out-param (make-parameter "update-stable.json"))
+(define out-param (make-parameter "update-manifest.json"))
 (define base-url-param (make-parameter default-base-url))
 (define verify-pub-param (make-parameter #f))
 
@@ -66,7 +67,7 @@
  [("--deb-arm64") p "path to the built arm64 deb asset" (deb-arm64-param p)]
  [("--tarball-arm64") p "path to the built arm64 tarball asset" (tarball-arm64-param p)]
  [("--private-key") p "Ed25519 private key file, PEM (PKCS#8) or DER" (key-param p)]
- [("--out") p "output path (default: update-stable.json)" (out-param p)]
+ [("--out") p "output path (default: update-manifest.json)" (out-param p)]
  [("--base-url") u "repository base url" (base-url-param u)]
  [("--verify-public-key") p
   "after writing, re-verify the feed with this public key (PEM or DER)"

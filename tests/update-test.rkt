@@ -178,7 +178,7 @@
 (check-equal? (hash-ref info 'url) releases-page-url)
 (check-equal? releases-page-url "https://github.com/turlamai/gptp-studio/releases/latest")
 (check-equal? update-manifest-url
-              "https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json")
+              "https://github.com/turlamai/gptp-studio/releases/latest/download/update-manifest.json")
 
 ;; ---- staged-name asset derivation -------------------------------------------------
 ;; The staged name derives from the feed entry's URL basename — the release
@@ -700,7 +700,9 @@
     (display (get-output-bytes captured) (current-error-port)))
   (or status -1))
 
-(define feed-out (build-path keydir "update-stable.json"))
+;; The output name mirrors the release asset the publish job writes
+;; (update-manifest.json); the signature covers the payload, not the name.
+(define feed-out (build-path keydir "update-manifest.json"))
 (check-equal? (run-feed-script! script-priv-pem feed-out script-pub-der) 0
               "PEM secret signs and self-verifies the feed")
 (check-true (file-exists? feed-out))

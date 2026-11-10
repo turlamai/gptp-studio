@@ -2,8 +2,9 @@
 
 ;; Online update check, built on rivet/distribution — the family pattern
 ;; (taskly benchmark; pdfgist/syncpilot/regexmate/podlens/autarx): the feed
-;; is an Ed25519-signed manifest wrapper (update-stable.json on this repo's
-;; main branch) that rivet's fetch-update-manifest fetches over HTTPS-only
+;; is an Ed25519-signed manifest wrapper (update-manifest.json, attached to
+;; every GitHub release and fetched through the releases/latest/download
+;; alias) that rivet's fetch-update-manifest fetches over HTTPS-only
 ;; with a built-in redirect budget (the GitHub release-asset 302 onto the
 ;; CDN), caps the body at 1 MiB, and signature-verifies before anything
 ;; else looks at the bytes. Selection policy (identity, channel, SemVer
@@ -177,12 +178,16 @@
 (define releases-page-url
   "https://github.com/turlamai/gptp-studio/releases/latest")
 
-;; The signed feed lives on the repo's main branch; raw.githubusercontent
-;; serves it over HTTPS like any file server. A release regenerates and
-;; commits it last ("feed: x.y.z") — that commit is what makes the check
-;; fire for older installs.
+;; The signed feed is a release asset: each release attaches the freshly
+;; signed update-manifest.json and this alias resolves to the latest one.
+;; A single constant, so a future relocation stays a one-edit change.
+;; History: releases through 0.4.0 fetched an update-stable.json committed
+;; to the repo's main branch; the release-asset migration retires that
+;; location — pre-switch installs silently lose the automatic check and
+;; need a one-off manual update (the same retirement the unsigned
+;; latest.json scheme made before this).
 (define update-manifest-url
-  "https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json")
+  "https://github.com/turlamai/gptp-studio/releases/latest/download/update-manifest.json")
 
 ;; ---- install shape -------------------------------------------------------------
 

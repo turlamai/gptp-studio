@@ -70,13 +70,21 @@ is a distribution format, not an update shape: its users update by
 re-downloading from Releases (the in-app updater serves deb and tarball
 shapes only). There is no Windows/macOS channel.
 
-## The feed: `update-stable.json`
+## The feed: `update-manifest.json` (release asset)
 
-- Location: the repository's `main` branch
-  (`https://raw.githubusercontent.com/turlamai/gptp-studio/main/update-stable.json`),
-  regenerated and committed by the Release workflow's publish job after the
-  assets are attached (`feed: x.y.z`) — that commit is what makes the
-  check fire for older installs.
+- Location: every release attaches the freshly signed manifest as
+  `update-manifest.json`; clients fetch it through the
+  `releases/latest/download` alias
+  (`https://github.com/turlamai/gptp-studio/releases/latest/download/update-manifest.json`),
+  which resolves to the newest release's copy. The Release workflow signs
+  it **before** the assets are attached — a missing or self-verifying-failed
+  feed fails the release with no assets published.
+- Migration history: releases through 0.4.0 fetched an `update-stable.json`
+  committed to the repository's `main` branch
+  (`raw.githubusercontent.com`); the release-asset migration retired that
+  location along with the root feed file. Pre-switch installs silently
+  lose the automatic check and need a one-off manual update (the same
+  retirement the earlier unsigned `latest.json` scheme made).
 - Format: rivet/distribution's signed wrapper — the inner manifest travels
   base64-encoded inside a JSON envelope, so the Ed25519 signature covers
   the exact bytes every client verifies:
@@ -91,14 +99,14 @@ shapes only). There is no Windows/macOS channel.
 ```
 
 - Inner manifest (decoded `payload`): rivet's manifest schema —
-  `application_id` `site.jrtx.gptp-studio`, `version`, `build` (from
+  `application_id` `site.jrtx.gptpstudio`, `version`, `build` (from
   `rivet.rktd`), `channel` `stable`, RFC 3339 `published_at`, and one
   artifact entry per shape:
 
 ```json
 {
   "platform": "linux", "architecture": "x64",
-  "url": "https://github.com/turinglambdaai/gptp-studio/releases/download/v0.2.0/gptp-studio-0.2.0-linux-amd64.deb",
+  "url": "https://github.com/turlamai/gptp-studio/releases/download/v0.2.0/gptp-studio-0.2.0-linux-amd64.deb",
   "sha256": "<lowercase hex>", "size": 12345678, "installer": "deb", "arguments": []
 }
 ```
@@ -110,8 +118,8 @@ shapes only). There is no Windows/macOS channel.
   buttons; the feed never points at them.
 - Generation: `scripts/make-update-manifest.rkt` (the publish job signs
   with the `UPDATER_PRIVATE_KEY` secret and re-verifies the written feed
-  against the shipped anchor `app/keys/updater/public.pem` before
-  committing — a mismatched key fails the release).
+  against the shipped anchor `app/keys/updater/public.pem` before any
+  asset is attached — a mismatched key fails the release).
 
 ## Trust chain
 
