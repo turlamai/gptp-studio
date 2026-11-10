@@ -125,6 +125,39 @@ jobs:
           test "$?" = "0"
           head -5 doctor.out
 
+      - name: Flatpak bundle
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH="${{ matrix.arch }}"
+          # The payload is the tar.gz (this repo names it x64/arm64); the
+          # bundle keeps the matrix spelling (amd64/arm64) alongside the deb.
+          case "$ARCH" in amd64) FPARCH=x86_64; TARARCH=x64 ;; arm64) FPARCH=aarch64; TARARCH=arm64 ;; esac
+          sudo apt-get install --yes flatpak flatpak-builder
+          # User-level everything: runner accounts install runtimes and
+          # build without root. GNOME 50 is the oldest supported platform
+          # runtime (48 went EOL 2026-03-24); its glibc 2.42 covers the
+          # ubuntu-24.04-built payload.
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          # The manifest template carries version/arch/sha placeholders so
+          # the archive source's checksum is exact per release.
+          cp "dist/gptp-studio-${VERSION}-linux-${TARARCH}.tar.gz" .
+          SHA="$(sha256sum "gptp-studio-${VERSION}-linux-${TARARCH}.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${TARARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.gptpstudio.yml > site.jrtx.gptpstudio.gen.yml
+          # --disable-rofiles-fuse: runners have no /dev/fuse.
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.gptpstudio.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "gptp-studio-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.gptpstudio stable
+          rm -rf flatpak-build flatpak-repo "gptp-studio-${VERSION}-linux-${TARARCH}.tar.gz"
+          test -f "gptp-studio-${VERSION}-linux-${ARCH}.flatpak"
+          mv "gptp-studio-${VERSION}-linux-${ARCH}.flatpak" dist/
+
       # Every distributable gets a .sha256 sidecar next to its body, the
       # SBOM carries the version and arch in its name, and the publish job
       # folds the sidecars into one SHA256SUMS.
@@ -136,7 +169,8 @@ jobs:
           mkdir -p release-out
           find dist -maxdepth 1 -type f \
             \( -name '*.deb' -o -name '*.tar.gz' -o -name '*.zip' \
-               -o -name '*.rpm' -o -name '*.AppImage' -o -name 'sbom.cdx.json' \) \
+               -o -name '*.rpm' -o -name '*.AppImage' -o -name '*.flatpak' \
+               -o -name 'sbom.cdx.json' \) \
             -exec cp {} release-out/ \;
           cd release-out
           mv sbom.cdx.json "gptp-studio-${VERSION}-linux-${ARCH}.sbom.cdx.json"
@@ -183,7 +217,8 @@ jobs:
             linux-amd64.sbom.cdx.json linux-arm64.sbom.cdx.json \
             linux-x64.tar.gz linux-arm64.tar.gz \
             linux-x64.zip linux-arm64.zip \
-            linux-x86_64.AppImage linux-aarch64.AppImage; do
+            linux-x86_64.AppImage linux-aarch64.AppImage \
+            linux-amd64.flatpak linux-arm64.flatpak; do
             name="gptp-studio-$VERSION-$suffix"
             test -s "artifacts/$name" || { echo "::error::Missing $name"; exit 1; }
             cp "artifacts/$name" public/
@@ -194,7 +229,8 @@ jobs:
             cp "$rpm" public/
           done
           (cd public && sha256sum gptp-studio-* | LC_ALL=C sort -k2 > SHA256SUMS && sha256sum --check --quiet SHA256SUMS)
-          test "$(grep -c '^' public/SHA256SUMS)" -eq 12
+          # 10 versioned packages + the two rpms + the two Flatpak bundles.
+          test "$(grep -c '^' public/SHA256SUMS)" -eq 14
 
       # The publishing job loads the signing secret independently of the
       # verify job. Recheck it BEFORE assets become publicly visible.
@@ -213,20 +249,18 @@ jobs:
           printf '%s\n' "$UPDATER_PRIVATE_KEY" > "$key_dir/signer.pem"
           bash scripts/check-update-signing-key.sh "$key_dir/signer.pem"
 
-      - name: Attach to the release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: public/*
-          generate_release_notes: true
-
-      # The signed feed (update-stable.json on main) is what makes older
-      # installs check: raw.githubusercontent serves it, the artifacts are
-      # reached through immutable versioned release URLs, and the
-      # commit is the last release step ("feed: x.y.z"). The private key
-      # exists only as the UPDATER_PRIVATE_KEY secret + the operator's
-      # vault; --verify-public-key re-verifies the written feed against the
-      # shipped anchor before anything is committed.
-      - name: Sign the update feed and commit it to main
+      # The signed feed is a release asset (update-manifest.json), fetched
+      # through the releases/latest/download alias — the same migration the
+      # family applies. Clients >= 0.4.1 point at that alias; installs
+      # older than the switch keep reading the retired main-branch
+      # update-stable.json, which no longer exists (the module comment and
+      # docs/update-contract.md document the one-off manual update, the
+      # podlens/autarx precedent). Artifact URLs inside the manifest stay
+      # pinned to the concrete tag. The private key exists only as the
+      # UPDATER_PRIVATE_KEY secret + the operator's vault;
+      # --verify-public-key re-verifies the written manifest against the
+      # shipped anchor before any asset is attached.
+      - name: Sign the update manifest (release asset)
         env:
           UPDATER_PRIVATE_KEY: ${{ secrets.UPDATER_PRIVATE_KEY }}
         run: |
@@ -252,19 +286,15 @@ jobs:
             --tarball-arm64 "artifacts/gptp-studio-$VERSION-linux-arm64.tar.gz" \
             --private-key "$KEY_PEM" \
             --verify-public-key app/keys/updater/public.pem \
-            --out update-stable.json
+            --out public/update-manifest.json
           rm -f "$KEY_PEM"
-          git config user.name "gptp-studio feed bot"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add update-stable.json
-          git commit -m "feed: $VERSION [skip ci]"
-          # The checkout is detached at the tag; rebase the feed commit
-          # onto current main so anything that landed on main while the
-          # release built (a concurrent push, a serialized duplicate run)
-          # cannot reject the release's final step.
-          git fetch origin main
-          git rebase origin/main
-          git push origin HEAD:main
+          test -s public/update-manifest.json
+
+      - name: Attach to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: public/*
+          generate_release_notes: true
 
       - name: Enforce public release inventory on rerun
         env:

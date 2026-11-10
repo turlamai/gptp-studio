@@ -115,6 +115,32 @@ chmod +x "gptp-studio-$VERSION-linux-x86_64.AppImage"
 "./gptp-studio-$VERSION-linux-x86_64.AppImage"
 ```
 
+### Flatpak (sandboxed bundle)
+
+The Flatpak bundle wraps the same release payload for sandboxed desktops
+(app id `site.jrtx.gptpstudio`; the first install pulls the GNOME Platform
+runtime from your Flatpak remote):
+
+```bash
+TAG=v0.4.0  # replace with the version shown on the Releases page
+VERSION="${TAG#v}"
+ARCH=amd64  # arm64 machines: ARCH=arm64
+curl -LO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-$ARCH.flatpak"
+flatpak install -y "gptp-studio-$VERSION-linux-$ARCH.flatpak"
+flatpak run site.jrtx.gptpstudio --doctor
+```
+
+The sandbox shares the network namespace (the signed-manifest update
+check) and pcap files open through the portal-backed file chooser. What
+it cannot carry is documented honestly: **live capture** opens raw
+`AF_PACKET` sockets through libpcap and no Flatpak grant provides
+`CAP_NET_RAW`, so the Flatpak form is offline pcap/pcapng analysis and
+export — the app reports the capture gap instead of failing; and the host
+tools the engine probes from `PATH` (`ptp4l`, `phc2sys`, `ethtool`,
+`wireshark`) are invisible in the sandbox, so engine management,
+`--doctor` hardware checks and the Wireshark one-click integration report
+them missing. For measurement-path work use the deb/rpm/tarball forms.
+
 ### From source
 
 ```bash
@@ -134,13 +160,16 @@ For real hardware work, start with `gptp-studio --doctor`, fix structural FAIL i
 
 ### Update check
 
-The Linux update channel uses an Ed25519-signed
-[`update-stable.json` feed](update-stable.json). A silent check may run
+The Linux update channel uses an Ed25519-signed manifest attached to every
+release (`update-manifest.json`, fetched through the
+`releases/latest/download` alias). A silent check may run
 after launch (throttled to at most once per four hours); the manual
 **Check for Updates** command bypasses that throttle. Invalid signatures
 or network errors must not cause an unverified install. A newer version
 requires the operator's consent to download and apply; **no update is
-automatically installed**.
+automatically installed**. Installs from before the release-asset
+migration (<= 0.4.0) read a retired main-branch feed and need a one-off
+manual update.
 
 Installation depends on the existing package shape:
 

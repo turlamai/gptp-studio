@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=gPTP Studio
+Comment=gPTP / IEEE 802.1AS debugging workstation for Automotive Ethernet
+Exec=gptp-studio
+Icon=site.jrtx.gptpstudio
+Terminal=false
+Categories=Development;Network;
+StartupWMClass=gPTP Studio

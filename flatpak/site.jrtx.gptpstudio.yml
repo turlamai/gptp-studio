@@ -1,0 +1,121 @@
+# Flatpak bundle manifest for the release payload (issue: the Linux
+# distribution contract — deb+rpm+AppImage+Flatpak+tar.gz).
+#
+# CI renders the __VERSION__ / __ARCH__ / __SHA256__ placeholders from the
+# linux tar.gz it just built and writes the generated manifest to the repo
+# root (see .github/workflows/release.yml, the Linux job's Flatpak bundle
+# step):
+#
+#   sed -e "s/__VERSION__/.../" -e "s/__ARCH__/.../" -e "s/__SHA256__/.../" \
+#     flatpak/site.jrtx.gptpstudio.yml > site.jrtx.gptpstudio.gen.yml
+#   flatpak-builder --user --force-clean --repo=repo build-dir site.jrtx.gptpstudio.gen.yml
+#   flatpak build-bundle repo gptp-studio-<v>-linux-<arch>.flatpak site.jrtx.gptpstudio
+#
+# The payload is self-contained (embedded Racket CS runtime, res/, app/);
+# like every family product, readelf on the release binary shows exactly two
+# NEEDED entries outside the GNOME Platform runtime — liblz4.so.1 and
+# libtinfo.so.6 — provided by the two small modules below. libpcap is NOT
+# bundled: capture/live.rkt loads it through the FFI with a defensive soname
+# probe and treats a missing library as a reportable capability gap, so the
+# sandbox's runtime-set decides which capture features light up.
+app-id: site.jrtx.gptpstudio
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: gptp-studio
+# The release contract bundles from branch `stable` (build-bundle arg);
+# builder otherwise commits to master.
+branch: stable
+separate-locales: false
+finish-args:
+  # prefer_xwayland_backend() picks X11 exactly when DISPLAY is set and
+  # WAYLAND_DISPLAY is not; granting only the X11 socket keeps that
+  # decision deterministic.
+  - --socket=x11
+  - --device=dri
+  - --share=ipc
+  # The startup update check is real behavior (support/updates.rkt): the
+  # launch fetches the Ed25519-signed release manifest over HTTPS and a
+  # consented update downloads the verified deb/tarball (staging only —
+  # deb apply is an explicit apt handoff, tar.gz a guarded replacement;
+  # neither self-installs silently). payback precedent: the network grant
+  # covers the check and download the app genuinely performs.
+  - --share=network
+  # No filesystem grant, deliberately: pcap/pcapng import and export run
+  # through the host-owned GtkFileDialog (linux/src/main.cpp
+  # open/save_file_dialog_path), which is portal-backed inside a sandbox —
+  # each chosen file gets its per-session grant — and every app state path
+  # derives from home-dir inside the sandbox, so ~/.gptp-studio and
+  # ~/.local/share/gptp-studio scope to
+  # ~/.var/app/site.jrtx.gptpstudio automatically (a Flatpak install starts
+  # with fresh gate/entitlement state, per the family pattern). No bus
+  # socket: nothing in app/, capture/ or engine/ talks to D-Bus.
+  #
+  # Capability boundaries the sandbox cannot carry (the README flatpak
+  # section documents both): live capture opens AF_PACKET raw sockets
+  # through the in-process libpcap FFI (capture/live.rkt) and no
+  # finish-arg grants CAP_NET_RAW, so the flatpak form is offline
+  # pcap/pcapng analysis and export — capture/open failures surface as the
+  # module's designed capability gap, never a startup crash; and the host
+  # tools the engine probes from $PATH (ptp4l, phc2sys, ethtool, ip,
+  # wireshark) are invisible in the sandbox, so engine detection, --doctor
+  # and the Wireshark one-click integration report them missing instead of
+  # failing startup (engine/detect.rkt degrades by design).
+modules:
+  - name: lz4
+    # Upstream keeps meson under build/ (flatpak-builder needs it at the
+    # module root), so use the primary Makefile build — library only.
+    buildsystem: simple
+    build-commands:
+      - make lib-release PREFIX=/app
+      - make -C lib install PREFIX=/app
+    sources:
+      - type: git
+        url: https://github.com/lz4/lz4.git
+        tag: v1.9.4
+        commit: 5ff839680134437dbf4678f3d0c7b371d84f4964
+  - name: ncurses
+    # libtinfo.so.6 only (the payload's NEEDED entry); no programs, no
+    # terminfo database install — the host system's entries stay put.
+    config-opts:
+      - --prefix=/app
+      - --with-shared
+      - --with-termlib
+      - --without-progs
+      - --without-tack
+      - --without-tests
+      # We only need libtinfo; the C++ binding does not survive the
+      # GNOME 50 SDK's GCC 15 libstdc++ (cstddef redefinition).
+      - --without-cxx-binding
+      - --without-cxx
+      - --disable-db-install
+    sources:
+      - type: archive
+        url: https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.5.tar.gz
+        sha256: 136d91bc269a9a5785e5f9e980bc76ab57428f604ce3e5a5a90cebc767971cc6
+  - name: gptp-studio
+    buildsystem: simple
+    sources:
+      - type: archive
+        path: gptp-studio-__VERSION__-linux-__ARCH__.tar.gz
+        sha256: __SHA256__
+      - type: file
+        # assets/icon.png is a true 512x512 render; flatpak's export check
+        # caps hicolor/512x512 icons at 512x512.
+        path: assets/icon.png
+      - type: file
+        path: flatpak/site.jrtx.gptpstudio.desktop
+    build-commands:
+      # flatpak-builder strips the archive's leading directory: the payload
+      # (gptp-studio, runtime/, res/, app/) lands flat in the build dir.
+      - mkdir -p /app/gptp-studio
+      - cp -a gptp-studio runtime res app /app/gptp-studio/
+      # The bundle's `command` resolves on the sandbox PATH (/app/bin); the
+      # payload lives outside it. A symlink keeps /proc/self/exe pointing
+      # at the real binary so the runtime layout discovery works.
+      - mkdir -p /app/bin
+      - ln -s /app/gptp-studio/gptp-studio /app/bin/gptp-studio
+      - install -Dm644 icon.png
+                    /app/share/icons/hicolor/512x512/apps/site.jrtx.gptpstudio.png
+      - install -Dm644 site.jrtx.gptpstudio.desktop
+                    /app/share/applications/site.jrtx.gptpstudio.desktop

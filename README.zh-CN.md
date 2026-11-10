@@ -113,6 +113,29 @@ chmod +x "gptp-studio-$VERSION-linux-x86_64.AppImage"
 "./gptp-studio-$VERSION-linux-x86_64.AppImage"
 ```
 
+### Flatpak（沙箱化打包）
+
+Flatpak 包把同一发布载荷装进沙箱桌面（app id `site.jrtx.gptpstudio`；
+首次安装会从你的 Flatpak 远端拉取 GNOME Platform runtime）：
+
+```bash
+TAG=v0.4.0  # 以 Releases 页面上需要安装的版本为准
+VERSION="${TAG#v}"
+ARCH=amd64  # arm64 机器用 ARCH=arm64
+curl -LO "https://github.com/turlamai/gptp-studio/releases/download/$TAG/gptp-studio-$VERSION-linux-$ARCH.flatpak"
+flatpak install -y "gptp-studio-$VERSION-linux-$ARCH.flatpak"
+flatpak run site.jrtx.gptpstudio --doctor
+```
+
+沙箱共享宿主网络命名空间（签名清单更新检查），pcap 文件经 portal 文件
+选择器打开。沙箱装不下的能力照实写明：**实时抓包**要经 libpcap 打开
+`AF_PACKET` 原始套接字，Flatpak 没有任何授权能给出 `CAP_NET_RAW`，
+因此 Flatpak 形态定位是离线 pcap/pcapng 分析与导出——抓包缺口由应用
+如实上报而非崩溃；引擎从 `PATH` 探测的宿主工具（`ptp4l`、`phc2sys`、
+`ethtool`、`wireshark`）在沙箱内不可见，引擎管理、`--doctor` 硬件检查
+与 Wireshark 一键集成会如实报告缺失。测量路径的工作请用 deb/rpm/tarball
+形态。
+
 ### 源码运行
 
 ```bash
@@ -132,11 +155,12 @@ raco rivet dev            # 运行应用；构建出的二进制同样支持 --d
 
 ### 更新检查
 
-Linux 更新渠道使用 Ed25519 签名的
-[`update-stable.json` 清单](update-stable.json)。启动后可能执行静默检查
+Linux 更新渠道使用 Ed25519 签名的发布资产清单（`update-manifest.json`，
+经 `releases/latest/download` 别名获取）。启动后可能执行静默检查
 （最长每四小时一次）；手动**检查更新**可以绕过该节流。网络失败或签名错误
 不得触发未验证的安装。发现新版本后，下载与应用都需要用户同意；
-**不会在后台自动安装更新**。
+**不会在后台自动安装更新**。发布资产化迁移（<= 0.4.0）之前的安装读的是
+已退役的 main 分支 feed，需要一次性手动更新。
 
 安装行为取决于原来的包形态：
 

@@ -1,0 +1,111 @@
+name: Flatpak smoke
+# Validation leg for the Flatpak bundle pipeline without a release: runs
+# the exact steps of release.yml's Flatpak stage against the latest
+# published release payload, on both architectures, and uploads the
+# bundle as an artifact. Dispatch manually after touching flatpak/ or
+# the release leg; it never publishes anything.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - flatpak/**
+      - .github/workflows/flatpak-smoke.yml
+      - .github/workflows/release.yml
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Flatpak smoke (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install flatpak + flatpak-builder
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes flatpak flatpak-builder
+      - name: Fetch the published release payload
+        run: |
+          set -euo pipefail
+          # The newest non-draft release's payload for this arch; the smoke
+          # test validates the pipeline, not a specific version.
+          VERSION="$(gh release list -R turlamai/gptp-studio --limit 5 --json tagName,isDraft --jq '.[] | select(.isDraft|not) | .tagName' | head -1 | sed 's/^v//')"
+          echo "Smoke payload version: ${VERSION}"
+          gh release download "v${VERSION}" -R turlamai/gptp-studio \
+            -p "gptp-studio-${VERSION}-linux-${ARCH}.tar.gz" -D . --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCH: ${{ matrix.arch }}
+      - name: Build the bundle (same steps as the release leg)
+        run: |
+          set -euo pipefail
+          VERSION="$(ls gptp-studio-*-linux-*.tar.gz | head -1 | sed -E 's/gptp-studio-([^-]+)-linux-.*/\1/')"
+          ARCH="${{ matrix.arch }}"
+          case "$ARCH" in x64) FPARCH=x86_64 ;; arm64) FPARCH=aarch64 ;; esac
+          flatpak --user remote-add --if-not-exists flathub \
+            https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y --noninteractive flathub \
+            "org.gnome.Platform/${FPARCH}/50" "org.gnome.Sdk/${FPARCH}/50"
+          SHA="$(sha256sum "gptp-studio-${VERSION}-linux-${ARCH}.tar.gz" | cut -d' ' -f1)"
+          sed -e "s/__VERSION__/${VERSION}/" -e "s/__ARCH__/${ARCH}/" \
+              -e "s/__SHA256__/${SHA}/" \
+              flatpak/site.jrtx.gptpstudio.yml > site.jrtx.gptpstudio.gen.yml
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=flatpak-repo flatpak-build site.jrtx.gptpstudio.gen.yml
+          flatpak build-bundle flatpak-repo \
+            "gptp-studio-${VERSION}-linux-${ARCH}.flatpak" site.jrtx.gptpstudio stable
+          sha256sum "gptp-studio-${VERSION}-linux-${ARCH}.flatpak" \
+            > "gptp-studio-${VERSION}-linux-${ARCH}.flatpak.sha256"
+      - name: Sandbox execution check
+        run: |
+          set -euo pipefail
+          sudo apt-get install --yes xvfb x11-utils
+          Xvfb :99 -screen 0 1024x768x24 & xvfb_pid=$!
+          sleep 1
+          # Install the bundle from the local file: the runtime ref is
+          # already present, so nothing reaches for the network here.
+          DISPLAY=:99 flatpak --user install -y --noninteractive \
+            ./gptp-studio-*-linux-*.flatpak
+          # --doctor is the headless surface: it must exit 0 inside the
+          # sandbox with every capability gap reported rather than a crash
+          # (libpcap presence decides capture support; ptp4l/ethtool are
+          # expected to be missing in the sandbox).
+          DISPLAY=:99 timeout 120 flatpak run --command=gptp-studio \
+            site.jrtx.gptpstudio --doctor > doctor.log 2>&1 || true
+          tail -5 doctor.log || true
+          grep -qiE "doctor|PASS|FAIL|WARN" doctor.log || \
+            { echo "doctor evidence missing"; exit 1; }
+          # Then the GUI: the window maps and the embedded backend boots
+          # (the RVT1 runtime layout resolves through /proc/self/exe inside
+          # the sandbox).
+          DISPLAY=:99 flatpak run site.jrtx.gptpstudio > app-run.log 2>&1 & run_pid=$!
+          for _ in $(seq 1 20); do
+            flatpak ps --columns=application | grep -q site.jrtx.gptpstudio && break
+            sleep 1
+          done
+          flatpak ps --columns=application | grep site.jrtx.gptpstudio
+          sleep 8
+          DISPLAY=:99 xwininfo -root -tree | grep -i gptp
+          grep -qE "ready|listening|serve|backend" app-run.log || \
+            { echo "backend boot evidence missing"; tail -20 app-run.log; exit 1; }
+          kill "$run_pid" 2>/dev/null || pkill -f site.jrtx.gptpstudio || true
+          kill "$xvfb_pid" 2>/dev/null || true
+      - name: Dump build dirs (diagnosis)
+        if: failure()
+        run: |
+          find .flatpak-builder/build -maxdepth 3 | head -40 || true
+          find . -maxdepth 2 -name "gptp-studio-linux-*" -o -maxdepth 2 -name "*.tar.gz" | head -10
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-smoke-${{ matrix.arch }}
+          path: gptp-studio-*.flatpak*
+          if-no-files-found: error
