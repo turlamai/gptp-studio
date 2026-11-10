@@ -81,7 +81,7 @@ or installed as package dependencies:
 
 - linuxptp (`ptp4l`, `phc2sys`, `pmc`)
 - libpcap
-- GTK 3 and WebKitGTK 4.1
+- GTK 4
 - OpenSSL command-line tools
 - `ethtool`, `iproute2`, and Linux capability tools
 
