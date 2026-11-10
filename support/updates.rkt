@@ -196,9 +196,10 @@
 
 ;; Product-side artifact pick over a verified manifest (rivet's
 ;; #:install-kind has no deb/tarball pair; regexmate's pick-artifact
-;; pattern): deb for system installs, tarball otherwise. The feed serves
-;; linux x64 deb + targz; arm64 installs pick nothing and stay on manual
-;; updates (CHANGELOG 1.2.0).
+;; pattern): deb for system installs, tarball otherwise. Matching is by
+;; platform, architecture and installer kind, so an arm64 machine picks
+;; the arm64 deb/tarball entries the release feed carries alongside the
+;; x64 ones.
 (define (pick-artifact manifest #:system-install? [system? (system-install?)])
   (define kind-wanted (if system? 'deb 'targz))
   (for/first ([a (in-list (update-manifest-artifacts manifest))]
