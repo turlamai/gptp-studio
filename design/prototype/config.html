@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gPTP Studio — 角色与配置原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 角色与配置页面专属 ==== */
+  .toolbar { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 12px; flex-wrap: nowrap; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--mute); }
+  .sel, .inp {
+    height: 30px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); font-size: 12.5px; font-family: inherit;
+  }
+  .inp { width: 120px; font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; }
+  .toolbar .push { flex: 1; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; min-width: 0; }
+  .params { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: 8px; }
+  .params .f label { font-size: 12px; font-weight: 600; color: var(--mute); display: block; }
+  .params .f .inp { width: 100%; margin-top: 4px; }
+  .params .f .note { font-size: 11px; color: var(--mute); margin-top: 3px; }
+  .roles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .rolebtn {
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; background: var(--surface);
+    text-align: left; cursor: pointer; font-family: inherit;
+  }
+  .rolebtn:hover { background: var(--hover); }
+  .rolebtn.sel { border-color: var(--accent); background: var(--hover); box-shadow: inset 0 0 0 1px var(--accent); }
+  .rolebtn .nm { font-size: 13px; font-weight: 600; }
+  .rolebtn .ds { font-size: 11px; color: var(--mute); margin-top: 3px; line-height: 1.4; }
+  .confhead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .confhead h3 { font-size: 12.5px; font-weight: 600; flex: 1; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <header class="headerbar">
+      <span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+      <span class="brand">gPTP Studio</span><span class="ver">v0.4.0</span>
+      <div class="sp"></div>
+      <span class="pill role">边界时钟</span><span class="pill mono">SLAVE</span>
+      <span class="pill mono">00:1E:8B:FF:FE:12:34:56</span><span class="pill mono">+42 ns</span>
+      <span class="pill mono">1 842 ns</span><span class="pill">Pro</span>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+      <div class="winctl"><i>—</i><i>□</i><i>×</i></div>
+    </header>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="sect">工作区</div>
+        <nav class="nav">
+          <div class="item"><span class="ic">◉</span>同步总览</div>
+          <div class="item"><span class="ic">⇄</span>链路与网卡</div>
+          <div class="item active"><span class="ic">⚙</span>角色与配置</div>
+          <div class="item"><span class="ic">▣</span>参考源</div>
+          <div class="item"><span class="ic">⇉</span>报文分析<span class="tag ok">1 240 帧</span></div>
+          <div class="item"><span class="ic">☰</span>运行与日志</div>
+        </nav>
+        <div class="foot"><span class="state ok"><i></i></span>引擎运行中 · linuxptp<span class="sp" style="flex:1"></span>v0.4.0</div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div><h1>角色与配置</h1><div class="sub">角色切换、gPTP 参数、生成 ptp4l.conf、启动/停止</div></div>
+        </div>
+        <div class="view">
+          <div class="card" style="margin-bottom:12px">
+            <div class="roles">
+              <button class="rolebtn"><div class="nm">GrandMaster</div><div class="ds">全网授时源，可经参考源提升绝对精度</div></button>
+              <button class="rolebtn"><div class="nm">从钟</div><div class="ds">对上游 GM 同步，显示 offset / delay</div></button>
+              <button class="rolebtn sel"><div class="nm">边界时钟</div><div class="ds">双端口：上游 Slave + 下游 Master（多接口 ptp4l + phc2sys -a -r）</div></button>
+              <button class="rolebtn"><div class="nm">被动监听</div><div class="ds">只抓包解码，不注入报文</div></button>
+            </div>
+            <div class="toolbar" style="margin:12px 0 0">
+              <div class="field"><label>运行方式</label>
+                <select class="sel"><option>真实引擎 (linuxptp)</option><option>模拟器</option></select></div>
+              <div class="field"><label>上游网卡</label>
+                <select class="sel"><option>enp3s0（1 Gb/s · PHC ✓）</option><option>enp4s0（无 PHC）</option></select></div>
+              <div class="field"><label>下游端口</label>
+                <select class="sel"><option>eth3（ECU-GW-A · 100 Mb/s）</option></select></div>
+              <div class="push"></div>
+              <button class="btn primary">▶ 启动</button>
+              <button class="btn destructive">■ 停止</button>
+            </div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:2px">gPTP 参数（IEEE 802.1AS）</h3>
+              <div class="params">
+                <div class="f"><label>Domain</label><input class="inp" value="0"></div>
+                <div class="f"><label>Priority1</label><input class="inp" value="132"></div>
+                <div class="f"><label>Priority2</label><input class="inp" value="128"></div>
+                <div class="f"><label>Announce 周期（log₂ 秒）</label><input class="inp" value="0"><div class="note">0 = 1 s</div></div>
+                <div class="f"><label>Sync 周期（log₂ 秒）</label><input class="inp" value="-3"><div class="note">-3 = 125 ms（802.1AS 典型值）</div></div>
+                <div class="f"><label>延迟机制</label>
+                  <select class="sel" style="width:100%;margin-top:4px"><option>PDelay（802.1AS）</option></select></div>
+                <div class="f"><label>传输模式</label>
+                  <select class="sel" style="width:100%;margin-top:4px"><option>L2 (EtherType 0x88f7)</option></select></div>
+                <div class="f"><label>保存为预设</label><input class="inp" placeholder="车载双端口 BC" style="width:100%;margin-top:4px"></div>
+              </div>
+              <div class="note" style="margin-top:10px">GM 运行时可在「运行与日志 → GM 调优」经 pmc 在线修改 clockClass / timeSource，无需重启引擎（Pro）。</div>
+            </div>
+            <div class="card">
+              <div class="confhead">
+                <h3>ptp4l.conf 预览（由当前配置自动生成）</h3>
+                <button class="btn">复制配置</button>
+              </div>
+              <div class="conf"><span class="c"># generated by gPTP Studio — 边界时钟 · Domain 0</span>
+[global]
+slaveOnly               0
+domainNumber            0
+priority1               132
+priority2               128
+logSyncInterval         -3
+logAnnounceInterval     0
+network_transport       L2
+delay_mechanism         P2P
+time_stamping           hardware
+free_running            0
+
+[eth2]
+<span class="c"># upstream slave port</span>
+
+[eth3]
+<span class="c"># downstream master port</span></div>
+              <div class="note" style="margin-top:10px">启动真实引擎前，请先在「链路与网卡」运行 Preflight 确认 PHC、linuxptp 与权限路径；当前 Preflight 存在 2 项 FAIL。</div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>Tab</kbd> 焦点</span><span><kbd>F10</kbd> 菜单</span><span><kbd>Ctrl+F</kbd> 搜索</span>
+          <span class="sp"></span><span>配置未应用 · 与运行中差异 0</span><span>原型 v0.1 · 按 ◐ 切换亮暗</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

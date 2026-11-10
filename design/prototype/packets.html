@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gPTP Studio — 报文分析原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 报文分析页面专属 ==== */
+  .bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: nowrap; }
+  .bar .sp { flex: 1; }
+  .bar .cnt { font-size: 12px; color: var(--mute); white-space: nowrap; }
+  .bar .cnt b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .frozen { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--warn); background: var(--warn-soft); border-radius: 99px; padding: 2px 10px; }
+  .pkt td, .pkt th { padding: 2px 10px; }
+  .pkt tr.sel td { font-weight: 600; }
+  .ty { font-size: 11px; font-weight: 600; border-radius: 99px; padding: 0 7px; }
+  .ty.sync { background: var(--hover); color: var(--accent); }
+  .ty.fu { background: var(--hover); color: var(--accent-strong); }
+  .ty.ann { background: var(--warn-soft); color: var(--warn); }
+  .ty.pd { background: var(--ok-soft); color: var(--ok); }
+  .ty.sig { background: var(--hover); color: var(--mute); }
+  .split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-top: 12px; min-width: 0; }
+  .tree { font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.75; white-space: pre; }
+  .tree .k { color: var(--mute); } .tree .v { color: var(--ink); }
+  .tree .grp { font-weight: 600; color: var(--accent-strong); }
+  .hex { font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.7; white-space: pre; color: var(--ink); }
+  .hex .off { color: var(--mute); } .hex .hl { background: var(--warn-soft); border-radius: 2px; color: var(--warn); font-weight: 600; }
+  .hexhead { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .hexhead h3 { font-size: 12.5px; font-weight: 600; flex: 1; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <header class="headerbar">
+      <span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+      <span class="brand">gPTP Studio</span><span class="ver">v0.4.0</span>
+      <div class="sp"></div>
+      <span class="pill role">边界时钟</span><span class="pill mono">SLAVE</span>
+      <span class="pill mono">00:1E:8B:FF:FE:12:34:56</span><span class="pill mono">+42 ns</span>
+      <span class="pill mono">1 842 ns</span><span class="pill">Pro</span>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+      <div class="winctl"><i>—</i><i>□</i><i>×</i></div>
+    </header>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="sect">工作区</div>
+        <nav class="nav">
+          <div class="item"><span class="ic">◉</span>同步总览</div>
+          <div class="item"><span class="ic">⇄</span>链路与网卡</div>
+          <div class="item"><span class="ic">⚙</span>角色与配置</div>
+          <div class="item"><span class="ic">▣</span>参考源</div>
+          <div class="item active"><span class="ic">⇉</span>报文分析<span class="tag ok">1 240 帧</span></div>
+          <div class="item"><span class="ic">☰</span>运行与日志</div>
+        </nav>
+        <div class="foot"><span class="state ok"><i></i></span>引擎运行中 · linuxptp<span class="sp" style="flex:1"></span>v0.4.0</div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div><h1>报文分析</h1><div class="sub">EtherType 0x88f7 · 精确 sec+nsec 元数据 · pcap/pcapng 导入导出</div></div>
+        </div>
+        <div class="view">
+          <div class="bar">
+            <div class="field" style="display:flex;flex-direction:column;gap:3px">
+              <span class="hint" style="font-weight:600">抓包网卡</span>
+              <select class="sel" style="height:28px"><option>enp3s0（gPTP 过滤器）</option></select>
+            </div>
+            <button class="btn primary">▶ 开始抓包</button>
+            <button class="btn">■ 停止抓包</button>
+            <span class="frozen">⏸ 视图已冻结 · 实时到达帧仅入存储</span>
+            <div class="sp"></div>
+            <button class="btn">导入 pcap/pcapng</button>
+            <button class="btn">导出 pcap</button>
+            <button class="btn destructive">清空</button>
+          </div>
+          <div class="card" style="padding:6px 0">
+            <table class="tbl pkt">
+              <tr><th class="n">#</th><th class="n">时间</th><th>类型</th><th class="n">Seq</th><th class="n">Domain</th><th>源端口</th><th class="n">长度</th></tr>
+              <tr class="sel"><td class="n">1423</td><td class="n">14:03:25.998 481 210</td><td><span class="ty sync">Sync</span></td><td class="n">1423</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">54</td></tr>
+              <tr><td class="n">1424</td><td class="n">14:03:26.023 451 002</td><td><span class="ty fu">Follow_Up</span></td><td class="n">1423</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">54</td></tr>
+              <tr><td class="n">1425</td><td class="n">14:03:26.107 220 184</td><td><span class="ty pd">PDelay_Req</span></td><td class="n">890</td><td class="n">0</td><td class="mono">ECU-GW-A</td><td class="n">50</td></tr>
+              <tr><td class="n">1426</td><td class="n">14:03:26.107 228 610</td><td><span class="ty pd">PDelay_Resp</span></td><td class="n">890</td><td class="n">0</td><td class="mono">eth3（本机）</td><td class="n">50</td></tr>
+              <tr><td class="n">1427</td><td class="n">14:03:26.123 481 004</td><td><span class="ty sync">Sync</span></td><td class="n">1424</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">54</td></tr>
+              <tr><td class="n">1428</td><td class="n">14:03:26.248 112 776</td><td><span class="ty ann">Announce</span></td><td class="n">356</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">70</td></tr>
+              <tr><td class="n">1429</td><td class="n">14:03:26.373 481 002</td><td><span class="ty sync">Sync</span></td><td class="n">1425</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">54</td></tr>
+              <tr><td class="n">1430</td><td class="n">14:03:26.398 452 310</td><td><span class="ty fu">Follow_Up</span></td><td class="n">1425</td><td class="n">0</td><td class="mono">00:1E:8B:…:34:56</td><td class="n">54</td></tr>
+              <tr><td class="n">1431</td><td class="n">14:03:26.505 012 118</td><td><span class="ty sig">Signalling</span></td><td class="n">77</td><td class="n">0</td><td class="mono">ECU-GW-A</td><td class="n">62</td></tr>
+            </table>
+          </div>
+          <div class="split">
+            <div class="card">
+              <div class="hexhead"><h3>报文详情 — Sync · #1423</h3><button class="btn">复制摘要</button></div>
+              <div class="tree">
+<span class="grp">Header</span>          <span class="k">majorSdoId</span> <span class="v">0</span> · <span class="k">version</span> <span class="v">2.1</span>
+                    <span class="k">messageType</span> <span class="v">Sync (0x0)</span> · <span class="k">twoStep</span> <span class="v">true</span>
+                    <span class="k">domainNumber</span> <span class="v">0</span> · <span class="k">sequenceId</span> <span class="v">1423</span>
+<span class="grp">Sync</span>               <span class="k">originTimestamp</span> <span class="v">14:03:25.998 481 100</span>
+<span class="grp">Timestamps</span>         <span class="k">ingress (HW)</span> <span class="v">14:03:25.998 481 210</span>
+                    <span class="k">source</span> <span class="v">PHC /dev/ptp0 · sec + nsec</span>
+<span class="grp">关联</span>               <span class="k">Follow_Up</span> <span class="v">#1424</span> · <span class="k">offset 样本</span> <span class="v">+42 ns</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="hexhead"><h3>原始字节（Hex）</h3><button class="btn">复制 Hex</button></div>
+              <div class="hex"><span class="off">0000</span>  01 1b 19 00 00 00 01 00  02 00 0c 00 00 00 00 00
+<span class="off">0010</span>  <span class="hl">00 00 05 8f</span> 00 00 00 00  00 00 01 e8 2f 3c 2a 16
+<span class="off">0020</span>  00 00 01 e8 2f 3c 2a 16  00 00 00 00 00 00 00 00
+<span class="off">0030</span>  00 00 00 00 00 00</div>
+              <div class="hint" style="margin-top:8px">高亮 = sequenceId 1423（0x058F）；与 Follow_Up #1424 序号关联，失锁事件 14:02:11 即由此链定位。</div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>Tab</kbd> 焦点</span><span><kbd>F10</kbd> 菜单</span><span><kbd>Ctrl+F</kbd> 搜索</span>
+          <span class="sp"></span><span>显示 200 · 已载入 <b>1 240</b> · 总计上限 50 000 帧（Pro）</span><span>原型 v0.1 · 按 ◐ 切换亮暗</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gPTP Studio — 链路与网卡原型</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  /* ==== 链路与网卡页面专属 ==== */
+  .nic h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+  .nic h3 .mono { font-size: 12.5px; }
+  .kv { display: grid; grid-template-columns: 108px 1fr; gap: 3px 10px; font-size: 12.5px; margin-top: 8px; }
+  .kv .k { color: var(--mute); }
+  .kv .v { font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+  .kv .v .mark-ok { color: var(--ok); font-weight: 600; }
+  .kv .v .mark-no { color: var(--danger); font-weight: 600; }
+  .note { font-size: 12px; line-height: 1.5; margin-top: 8px; padding: 7px 10px; border-radius: 6px; background: var(--hover); color: var(--mute); }
+  .note.warn { background: var(--warn-soft); color: var(--warn); }
+  .layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; min-width: 0; }
+  .checks .row { display: flex; align-items: center; gap: 9px; padding: 6px 4px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .checks .row:last-child { border-bottom: none; }
+  .checks .ic { width: 46px; text-align: left; font-weight: 700; flex: none; }
+  .checks .ok { color: var(--ok); } .checks .bad { color: var(--danger); font-weight: 600; }
+  .checks .why { margin-left: auto; color: var(--mute); font-size: 12px; text-align: right; }
+</style>
+</head>
+<body>
+  <div class="window" id="app">
+    <header class="headerbar">
+      <span class="mark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+      <span class="brand">gPTP Studio</span><span class="ver">v0.4.0</span>
+      <div class="sp"></div>
+      <span class="pill role">边界时钟</span><span class="pill mono">SLAVE</span>
+      <span class="pill mono">00:1E:8B:FF:FE:12:34:56</span><span class="pill mono">+42 ns</span>
+      <span class="pill mono">1 842 ns</span><span class="pill">Pro</span>
+      <button class="iconbtn" id="themeBtn" title="切换亮暗主题">◐</button>
+      <div class="winctl"><i>—</i><i>□</i><i>×</i></div>
+    </header>
+    <div class="body">
+      <aside class="sidebar">
+        <div class="sect">工作区</div>
+        <nav class="nav">
+          <div class="item"><span class="ic">◉</span>同步总览</div>
+          <div class="item active"><span class="ic">⇄</span>链路与网卡</div>
+          <div class="item"><span class="ic">⚙</span>角色与配置</div>
+          <div class="item"><span class="ic">▣</span>参考源</div>
+          <div class="item"><span class="ic">⇉</span>报文分析<span class="tag ok">1 240 帧</span></div>
+          <div class="item"><span class="ic">☰</span>运行与日志</div>
+        </nav>
+        <div class="foot"><span class="state ok"><i></i></span>引擎运行中 · linuxptp<span class="sp" style="flex:1"></span>v0.4.0</div>
+      </aside>
+      <section class="main">
+        <div class="head">
+          <div><h1>链路与网卡</h1><div class="sub">NIC / PHC 能力与真实引擎前置条件；实际抓包时间戳路径单独显示</div></div>
+          <div class="sp"></div>
+          <button class="btn">⟳ 重新扫描</button>
+          <button class="btn primary">▶ 运行 Preflight</button>
+        </div>
+        <div class="view">
+          <div class="grid3" style="margin-bottom:12px">
+            <div class="card nic">
+              <h3><span class="state ok"><i></i></span><span class="mono">enp3s0</span><span class="badge ok">就绪</span></h3>
+              <div class="kv">
+                <span class="k">硬件时间戳</span><span class="v"><span class="mark-ok">✓</span> TX + RX（SOF_TIMESTAMPING）</span>
+                <span class="k">PHC 设备</span><span class="v"><span class="mark-ok">✓</span> /dev/ptp0</span>
+                <span class="k">驱动</span><span class="v">igc 6.8.0</span>
+                <span class="k">链路</span><span class="v">UP · 1 Gb/s 全双工</span>
+              </div>
+              <div class="note">已检测到硬件收发时间戳与 PHC，适合真实 gPTP 同步调试；最终精度取决于 NIC/PHY/驱动/拓扑并应实测确认。</div>
+            </div>
+            <div class="card nic">
+              <h3><span class="state warn"><i></i></span><span class="mono">enp4s0</span><span class="badge warn">有硬件时间戳，无 PHC</span></h3>
+              <div class="kv">
+                <span class="k">硬件时间戳</span><span class="v"><span class="mark-ok">✓</span> TX + RX</span>
+                <span class="k">PHC 设备</span><span class="v"><span class="mark-no">✗</span> 未发现 /dev/ptpN</span>
+                <span class="k">驱动</span><span class="v">r8169 6.8.0</span>
+                <span class="k">链路</span><span class="v">DOWN · 未连接</span>
+              </div>
+              <div class="note warn">可用于抓包观察，但真实 gPTP 时钟控制路径不完整；请检查驱动是否暴露 /dev/ptpN。</div>
+            </div>
+            <div class="card nic">
+              <h3><span class="state idle"><i></i></span><span class="mono">wlp5s0</span><span class="badge quiet">仅软件时间戳</span></h3>
+              <div class="kv">
+                <span class="k">硬件时间戳</span><span class="v"><span class="mark-no">✗</span> 仅软件（百微秒级以上）</span>
+                <span class="k">PHC 设备</span><span class="v">—</span>
+                <span class="k">驱动</span><span class="v">iwlwifi 6.8.0</span>
+                <span class="k">链路</span><span class="v">UP · Wi-Fi 6</span>
+              </div>
+              <div class="note">适合协议调试，不建议用于判断 ECU 的 ns/µs 级同步精度。</div>
+            </div>
+          </div>
+          <div class="layout">
+            <div class="card checks">
+              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">Preflight — enp3s0 · 2026-11-11 14:00:32</h3>
+              <div class="row"><span class="ic ok">✓</span>硬件时间戳（TX/RX）<span class="why">ethtool -T enp3s0</span></div>
+              <div class="row"><span class="ic ok">✓</span>PHC 设备 /dev/ptp0<span class="why">sysfs</span></div>
+              <div class="row"><span class="ic ok">✓</span>linuxptp 已安装<span class="why">ptp4l 4.2 · phc2sys 4.2</span></div>
+              <div class="row"><span class="ic ok">✓</span>网卡链路 UP<span class="why">1 Gb/s</span></div>
+              <div class="row"><span class="ic bad">✗ FAIL</span>CAP_NET_ADMIN / CAP_NET_RAW<span class="why">当前进程未持有能力</span></div>
+              <div class="row"><span class="ic bad">✗ FAIL</span>CAP_SYS_TIME<span class="why">phc2sys 调整系统时钟需要</span></div>
+              <div class="note warn" style="background:var(--danger-soft);color:var(--danger)">结构性 FAIL：请先以安装文档给出的能力路径授权（setcap 或 systemd 服务），再启动真实引擎。Studio 不会静默执行 setcap。</div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn">导出诊断</button>
+                <button class="btn">查看修复指引</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">实际抓包时间戳路径（能力 ≠ 已校准精度）</h3>
+              <div class="kv">
+                <span class="k">NIC 能力</span><span class="v">硬件 TX/RX + PHC</span>
+                <span class="k">实际 source</span><span class="v">硬件 · PHC /dev/ptp0</span>
+                <span class="k">时间戳元数据</span><span class="v">sec + nsec（SO_TIMESTAMPING）</span>
+                <span class="k">参考平台</span><span class="v">—（尚未认证）</span>
+              </div>
+              <div class="note">网卡报告具备硬件时间能力只代表 linuxptp 所需前置成立，不等于已证明端到端测量精度；能力、运行时来源与参考平台校准三类信息分别管理。</div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn">复制参考平台</button>
+                <button class="btn primary">记录认证样本</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span><kbd>Tab</kbd> 焦点</span><span><kbd>F10</kbd> 菜单</span><span><kbd>Ctrl+F</kbd> 搜索</span>
+          <span class="sp"></span><span>2 NIC 就绪 · 1 PHC</span><span>原型 v0.1 · 按 ◐ 切换亮暗</span>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script>
+    document.getElementById('themeBtn').addEventListener('click', () => {
+      document.getElementById('app').classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>
