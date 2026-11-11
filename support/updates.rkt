@@ -24,7 +24,7 @@
 ;; decides what this build accepts, pinned via update-public-key-b64
 ;; below. The rotation anchor remains app/keys/updater/public.pem (the
 ;; test suite ties the two together). This retires the unsigned
-;; latest.json scheme: pre-switch installs (<= 1.2.0) fetch a feed that no
+;; latest.json scheme: pre-switch installs (<= 0.4.0) fetch a feed that no
 ;; longer exists, so they silently lose the automatic check and need a
 ;; one-off manual update (the release notes say so; the podlens/autarx
 ;; precedent).
@@ -96,7 +96,7 @@
                                (base64-string->bytes update-public-key-b64))
                  'SubjectPublicKeyInfo))
 
-;; The running version — set by main.rkt from app/state.rkt's app-version.
+;; The running version — set by app/backend.rkt from app/state.rkt's app-version.
 ;; A parameter (not a require of app/state.rkt) so the updater drags none
 ;; of the engine into scope and tests can drive the selection policy.
 (define update-current-version (make-parameter "0.0.0"))

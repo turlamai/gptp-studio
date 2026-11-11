@@ -19,6 +19,8 @@ Desktop.ini
 # Build artifacts
 doc/
 dist/
+build/
+.gptp-studio/
 
 # Test artifacts
 *.coverage
@@ -28,27 +30,18 @@ rtimeserver.config
 *.local
 
 # app runtime / secrets
-keys/private.pem
 app/keys/private.pem
 *.lic
-dist/
-build/
-.gptp-studio/
-dist-test/
-dist/
-dist-manual/
-dist-fixed/
 
 # release artifacts (attach to GitHub Releases, never commit)
-/gPTP-Studio-*.deb
-/gPTP-Studio-*.deb.sha256
-/gPTP-Studio-*.tar.gz
-/gPTP-Studio-*.tar.gz.sha256
+/gptp-studio-*.deb
+/gptp-studio-*.deb.sha256
+/gptp-studio-*.tar.gz
+/gptp-studio-*.tar.gz.sha256
+/gptp-studio-*.sig
 
 # updater signing key (public ships, private stays local + vault)
 app/keys/updater/private.pem
-
-/gPTP-Studio-*.sig
 
 # Rivet build artifacts (staged bundles, generated clients)
 .rivet/

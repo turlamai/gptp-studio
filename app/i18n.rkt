@@ -2,8 +2,8 @@
 
 ;; zh / en string table. Chinese is the primary language (the PRD and the
 ;; author's audience are Chinese-first); English is fully covered. The
-;; frontend fetches the whole table via /api/i18n and applies it with
-;; data-i18n attributes.
+;; native host fetches the whole table through the RVT1 RPC (i18n-dict)
+;; rather than baking strings at build time.
 
 (provide i18n-dict
          i18n-supported

@@ -4,7 +4,7 @@
 ;;
 ;; gPTP Studio intentionally targets Linux because the real product path
 ;; depends on sysfs, SO_TIMESTAMPING/PHC, linuxptp and Linux capability
-;; semantics. Unsupported hosts are rejected by main.rkt instead of being
+;; semantics. Unsupported hosts are rejected by app/gate.rkt instead of being
 ;; presented as partially supported analysis-only platforms.
 ;;
 ;; Every probe failure degrades to an "unknown" field so transient host state
