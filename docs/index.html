@@ -81,7 +81,7 @@
                 <p class="linux-pill"><span class="linux-dot" aria-hidden="true"></span><span data-i18n="hero.pill">仅支持 Linux · Ubuntu 24.04</span></p>
                 <span class="kit-eyebrow" data-i18n="hero.eyebrow">Automotive Ethernet 时间同步</span>
                 <h1><span data-i18n="hero.h1a">一台 Linux 工作站，</span> <span class="kit-accent-word" data-i18n="hero.h1b">看清整个 gPTP。</span></h1>
-                <p class="kit-lead" data-i18n="hero.lead">gPTP Studio 是围绕 Linux 时间栈构建的专业 IEEE 802.1AS / AUTOSAR EthTSyn 调试工作站：PHC、硬件时间戳、SO_TIMESTAMPING、linuxptp 与明确可控的权限路径。</p>
+                <p class="kit-lead" data-i18n="hero.lead">gPTP Studio 是围绕 Linux 时间栈构建的 IEEE 802.1AS / AUTOSAR EthTSyn 调试工作站：同步状态一眼可判，Preflight 先审硬件资格，每条告警都能回溯到同时刻的报文证据。</p>
                 <div class="kit-btn-row">
                     <div class="kit-dl">
                         <a class="kit-btn kit-btn--primary" data-kit-dl-primary href="https://github.com/turlamai/gptp-studio/releases/latest">
@@ -145,20 +145,24 @@
                 <h2 class="kit-h2"><span data-i18n="features.title-a">把时间同步调试台，</span> <span class="kit-accent-word" data-i18n="features.title-b">收进一个窗口。</span></h2>
                 <div class="kit-grid kit-grid--3" style="margin-top: 44px;">
                     <div class="kit-card">
+                        <h3 data-i18n="features.ws.title">六页工作区</h3>
+                        <p data-i18n="features.ws.body">同步总览、链路与网卡、角色与配置、参考源、报文分析、运行与日志——每页盯住一件事，告警、报文与配置跨页互链。</p>
+                    </div>
+                    <div class="kit-card">
                         <h3 data-i18n="features.f1.title">GM / 从钟 / 边界时钟 / Listener</h3>
                         <p data-i18n="features.f1.body">生成 ptp4l 配置并统一监督真实引擎生命周期。</p>
                     </div>
                     <div class="kit-card">
                         <h3 data-i18n="features.f2.title">PHC 与硬件时间戳资格检查</h3>
-                        <p data-i18n="features.f2.body">真实引擎启动前检查驱动、链路、TX/RX 硬件时间戳、/dev/ptpN 与权限路径。</p>
+                        <p data-i18n="features.f2.body">启动真实引擎前逐项 Preflight：驱动、链路、TX/RX 硬件时间戳、/dev/ptpN 与 CAP 能力路径；✓/✗ 清单与 FAIL 态一目了然，诊断可导出，绝不静默提权。</p>
                     </div>
                     <div class="kit-card">
                         <h3 data-i18n="features.f3.title">实时同步分析与根因</h3>
-                        <p data-i18n="features.f3.body">实时观察 offsetFromMaster、meanPathDelay、端口状态、GM 与告警；从 offset 跳变回看同时刻报文证据与观测性 BMCA 时间轴。</p>
+                        <p data-i18n="features.f3.body">顶栏 6 枚实时 pills 常驻角色、端口、GM、offset 与 delay；锁定 / 漂移 / 失锁三级状态以颜色加文字双编码呈现，失锁与阈值越限即时横幅告警，并可从 offset 尖峰回看同时刻报文与观测性 BMCA 时间轴。</p>
                     </div>
                     <div class="kit-card">
                         <h3 data-i18n="features.f4.title">报文级关联</h3>
-                        <p data-i18n="features.f4.body">完整解码 Sync、Follow_Up、Announce、PDelay_*、Signalling，并保留精确时间戳元数据和 hex。</p>
+                        <p data-i18n="features.f4.body">报文表逐帧保留纳秒级时间戳；Sync、Follow_Up、Announce、PDelay_*、Signalling 完整解码为缩进字段树，可对照 hex 视图与同 sequenceId 的关联报文逐字段核对。</p>
                     </div>
                     <div class="kit-card">
                         <h3 data-i18n="features.f5.title">无头 Doctor</h3>
@@ -325,7 +329,7 @@ chmod +x "gptp-studio-${VERSION}-linux-x86_64.AppImage"
     "hero.eyebrow": "Automotive Ethernet 时间同步",
     "hero.h1a": "一台 Linux 工作站，",
     "hero.h1b": "看清整个 gPTP。",
-    "hero.lead": "gPTP Studio 是围绕 Linux 时间栈构建的专业 IEEE 802.1AS / AUTOSAR EthTSyn 调试工作站：PHC、硬件时间戳、SO_TIMESTAMPING、linuxptp 与明确可控的权限路径。",
+    "hero.lead": "gPTP Studio 是围绕 Linux 时间栈构建的 IEEE 802.1AS / AUTOSAR EthTSyn 调试工作站：同步状态一眼可判，Preflight 先审硬件资格，每条告警都能回溯到同时刻的报文证据。",
     "hero.availability": "工程预览。规划有官方专业版，此处尚不提供购买或硬件精度保证。",
     "hero.cta-source": "查看源码",
     "dl.generic": "下载 Linux 版本",
@@ -348,14 +352,16 @@ chmod +x "gptp-studio-${VERSION}-linux-x86_64.AppImage"
     "features.eyebrow": "替代零散工具链",
     "features.title-a": "把时间同步调试台，",
     "features.title-b": "收进一个窗口。",
+    "features.ws.title": "六页工作区",
+    "features.ws.body": "同步总览、链路与网卡、角色与配置、参考源、报文分析、运行与日志——每页盯住一件事，告警、报文与配置跨页互链。",
     "features.f1.title": "GM / 从钟 / 边界时钟 / Listener",
     "features.f1.body": "生成 ptp4l 配置并统一监督真实引擎生命周期。",
     "features.f2.title": "PHC 与硬件时间戳资格检查",
-    "features.f2.body": "真实引擎启动前检查驱动、链路、TX/RX 硬件时间戳、/dev/ptpN 与权限路径。",
+    "features.f2.body": "启动真实引擎前逐项 Preflight：驱动、链路、TX/RX 硬件时间戳、/dev/ptpN 与 CAP 能力路径；✓/✗ 清单与 FAIL 态一目了然，诊断可导出，绝不静默提权。",
     "features.f3.title": "实时同步分析与根因",
-    "features.f3.body": "实时观察 offsetFromMaster、meanPathDelay、端口状态、GM 与告警；从 offset 跳变回看同时刻报文证据与观测性 BMCA 时间轴。",
+    "features.f3.body": "顶栏 6 枚实时 pills 常驻角色、端口、GM、offset 与 delay；锁定 / 漂移 / 失锁三级状态以颜色加文字双编码呈现，失锁与阈值越限即时横幅告警，并可从 offset 尖峰回看同时刻报文与观测性 BMCA 时间轴。",
     "features.f4.title": "报文级关联",
-    "features.f4.body": "完整解码 Sync、Follow_Up、Announce、PDelay_*、Signalling，并保留精确时间戳元数据和 hex。",
+    "features.f4.body": "报文表逐帧保留纳秒级时间戳；Sync、Follow_Up、Announce、PDelay_*、Signalling 完整解码为缩进字段树，可对照 hex 视图与同 sequenceId 的关联报文逐字段核对。",
     "features.f5.title": "无头 Doctor",
     "features.f5.body": "生成默认脱敏的 NIC、PHC、linuxptp、权限与角色资格报告。",
     "features.f6.title": "内置模拟器与故障注入",
@@ -409,7 +415,7 @@ chmod +x "gptp-studio-${VERSION}-linux-x86_64.AppImage"
     "hero.eyebrow": "Automotive Ethernet timing",
     "hero.h1a": "One Linux workstation.",
     "hero.h1b": "Full gPTP visibility.",
-    "hero.lead": "gPTP Studio is a professional IEEE 802.1AS / AUTOSAR EthTSyn debugging workstation built around the Linux timing stack: PHC, hardware timestamping, SO_TIMESTAMPING, linuxptp and explicit privilege control.",
+    "hero.lead": "gPTP Studio is an IEEE 802.1AS / AUTOSAR EthTSyn debugging workstation built around the Linux timing stack: sync state is readable at a glance, Preflight qualifies the hardware before any engine starts, and every alarm traces back to the packets behind it.",
     "hero.availability": "Engineering preview. An official professional edition is planned, but no purchase or hardware-accuracy guarantee is offered here.",
     "hero.cta-source": "View source",
     "dl.generic": "Download for Linux",
@@ -432,14 +438,16 @@ chmod +x "gptp-studio-${VERSION}-linux-x86_64.AppImage"
     "features.eyebrow": "What it replaces",
     "features.title-a": "The timing debug bench,",
     "features.title-b": "in one window.",
+    "features.ws.title": "Six-page workspace",
+    "features.ws.body": "Overview, NICs & links, roles & config, reference sources, packet analysis, runtime & logs — one job per page, with alarms, packets and config cross-linked.",
     "features.f1.title": "GM / Slave / Boundary Clock / Listener",
     "features.f1.body": "Switch roles with generated ptp4l configuration and supervised engine lifecycle.",
     "features.f2.title": "PHC & hardware timestamp qualification",
-    "features.f2.body": "Inspect NIC driver, link, HW TX/RX timestamp support, /dev/ptpN and privilege readiness before a real engine starts.",
+    "features.f2.body": "Preflight runs item by item before a real engine starts: driver, link, TX/RX hardware timestamps, /dev/ptpN and capability paths. A ✓/✗ checklist with explicit FAIL states keeps readiness legible; diagnostics export, and privileges are never escalated silently.",
     "features.f3.title": "Live sync analysis & root cause",
-    "features.f3.body": "Track offsetFromMaster, meanPathDelay, port state, GM identity and alarms; jump back from an offset jump to the Sync/Follow_Up/PDelay/Announce evidence around it, with an observational BMCA timeline.",
+    "features.f3.body": "Six live pills keep role, port, GM identity, offset and delay in the header at all times; locked / drifting / uncalibrated states are dual-encoded in color and text, unlock and threshold breaches raise banner alarms, and any offset spike jumps to the packets and observational BMCA timeline around it.",
     "features.f4.title": "Packet-level correlation",
-    "features.f4.body": "Decode Sync, Follow_Up, Announce, PDelay_* and Signalling with exact timestamp metadata and hex inspection.",
+    "features.f4.body": "The packet table keeps nanosecond-level timestamps per frame; Sync, Follow_Up, Announce, PDelay_* and Signalling decode into an indented field tree, cross-checkable field by field against the hex view and same-sequenceId peer packets.",
     "features.f5.title": "Headless Doctor",
     "features.f5.body": "Generate a redacted report with NIC, PHC, linuxptp, privilege and per-role readiness facts.",
     "features.f6.title": "Offline simulator + fault injection",
