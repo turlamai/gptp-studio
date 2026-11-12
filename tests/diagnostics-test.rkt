@@ -3,7 +3,7 @@
 (require json
          rackunit
          racket/file
-         "../support/diagnostics.rkt")
+         "../racket/support/diagnostics.rkt")
 
 (define nic
   (hasheq 'name "enp3s0"

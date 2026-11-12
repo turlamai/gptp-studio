@@ -28,8 +28,8 @@
          racket/string
          (only-in racket/system process*/ports system*/exit-code)
          racket/tcp
-         "../support/updates.rkt"
-         "../support/updater.rkt")
+         "../racket/support/updates.rkt"
+         "../racket/support/updater.rkt")
 
 (use-all-factories!)
 

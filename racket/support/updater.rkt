@@ -1,7 +1,7 @@
 #lang racket/base
 
 ;; In-app self-update: download the update artifact chosen by the signed
-;; manifest check (support/updates.rkt), verify it, and stage it for
+;; manifest check (racket/support/updates.rkt), verify it, and stage it for
 ;; installation. The download leg is rivet's download-update — a
 ;; redirect-following fetch under the SIGNED size cap, .partial cleanup on
 ;; every failure, SHA-256 + size verification against the signed manifest,

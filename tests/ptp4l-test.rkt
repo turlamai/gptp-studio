@@ -5,7 +5,7 @@
 
 (require rackunit
          racket/list
-         "../engine/ptp4l.rkt")
+         "../racket/engine/ptp4l.rkt")
 
 ;; ---- ptp4l lines ---------------------------------------------------------------
 

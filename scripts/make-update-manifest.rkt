@@ -4,7 +4,7 @@
 ;; built release artifacts. The Release workflow signs it before any asset
 ;; is attached and publishes the result as the update-manifest.json release
 ;; asset — clients fetch it through the releases/latest/download alias
-;; (support/updates.rkt). It is also the manual tool for rebuilding the
+;; (racket/support/updates.rkt). It is also the manual tool for rebuilding the
 ;; feed:
 ;;
 ;;   racket scripts/make-update-manifest.rkt \
@@ -18,7 +18,7 @@
 ;;
 ;; Wire format: rivet/distribution's signed wrapper (schema + base64
 ;; payload + Ed25519 signature block) — exactly what
-;; support/updates.rkt's fetch-update-manifest verifies, with key id
+;; racket/support/updates.rkt's fetch-update-manifest verifies, with key id
 ;; gptp-studio-2026-10. The payload carries the artifact urls (pinned to
 ;; the concrete release tag), sizes and lowercase-hex SHA-256 digests;
 ;; there is no free-form notes field (release notes live on the release

@@ -2,7 +2,7 @@
 
 (require rackunit
          racket/list
-         "../support/host-quality.rkt")
+         "../racket/support/host-quality.rkt")
 
 (define (host virtualization clocksource)
   (hasheq 'system

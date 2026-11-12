@@ -4,11 +4,11 @@
          racket/file
          json
          "../app/bus.rkt"
-         "../engine/config.rkt"
-         "../engine/supervisor.rkt"
-         "../data/logstore.rkt"
-         "../data/series.rkt"
-         "../capture/store.rkt")
+         "../racket/engine/config.rkt"
+         "../racket/engine/supervisor.rkt"
+         "../racket/data/logstore.rkt"
+         "../racket/data/series.rkt"
+         "../racket/capture/store.rkt")
 
 (define tmp (make-temporary-file "gptp-studio-supervisor~a" 'directory))
 (define sup

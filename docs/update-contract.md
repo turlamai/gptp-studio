@@ -142,7 +142,7 @@ shapes only). There is no Windows/macOS channel.
   `UPDATER_PRIVATE_KEY` (PEM) and the release manager's local backup —
   never in the repository.
 - Public key: pinned twice, same keypair — raw 32 bytes base64 in
-  `support/updates.rkt` (`update-public-key-b64`) and the SPKI DER anchor
+  `racket/support/updates.rkt` (`update-public-key-b64`) and the SPKI DER anchor
   `app/keys/updater/public.pem`; the test suite ties the two together.
   `key_id` is `gptp-studio-2026-10`; clients pin it. Rotate = ship a build
   that trusts the next key before releases stop being signed with the old

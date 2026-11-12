@@ -12,13 +12,13 @@
          racket/list
          racket/string
          "../app/bus.rkt"
-         "../engine/config.rkt"
-         "../engine/qualification.rkt"
-         "../engine/runtime-config.rkt"
-         "../engine/supervisor.rkt"
-         "../data/logstore.rkt"
-         "../data/series.rkt"
-         "../capture/store.rkt")
+         "../racket/engine/config.rkt"
+         "../racket/engine/qualification.rkt"
+         "../racket/engine/runtime-config.rkt"
+         "../racket/engine/supervisor.rkt"
+         "../racket/data/logstore.rkt"
+         "../racket/data/series.rkt"
+         "../racket/capture/store.rkt")
 
 ;; ---- configuration --------------------------------------------------------------
 

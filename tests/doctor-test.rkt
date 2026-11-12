@@ -5,7 +5,7 @@
          racket/hash
          racket/port
          racket/string
-         "../support/doctor.rkt")
+         "../racket/support/doctor.rkt")
 
 (define ready-nic
   (hasheq 'name "enp3s0"

@@ -7,7 +7,7 @@
 (require racket/format
          racket/list
          racket/hash
-         (prefix-in bus: "../app/bus.rkt")
+         (prefix-in bus: "../../app/bus.rkt")
          "live.rkt"
          "../proto/decode.rkt"
          "../capture/store.rkt"

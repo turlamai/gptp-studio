@@ -6,9 +6,9 @@
 
 (require rackunit
          racket/list
-         "../proto/decode.rkt"
-         "../proto/encode.rkt"
-         "../proto/constants.rkt")
+         "../racket/proto/decode.rkt"
+         "../racket/proto/encode.rkt"
+         "../racket/proto/constants.rkt")
 
 ;; ---- helpers (module definitions are sequential: keep these first) ----------
 

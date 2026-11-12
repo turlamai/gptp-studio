@@ -7,8 +7,8 @@
 (require rackunit
          racket/list
          racket/string
-         "../engine/simulator.rkt"
-         "../proto/decode.rkt")
+         "../racket/engine/simulator.rkt"
+         "../racket/proto/decode.rkt")
 
 (define (decode-sim raw [t 0.0])
   (decode-frame raw #:ts t #:iface "sim" #:source "simulator"))

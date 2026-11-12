@@ -16,8 +16,8 @@
                   issue-credential
                   generate-ed25519-keypair
                   public-key->base64)
-         "../support/entitlement.rkt"
-         "../support/updates.rkt"
+         "../racket/support/entitlement.rkt"
+         "../racket/support/updates.rkt"
          "../app/gate.rkt")
 
 ;; ---- throwaway issuer: key pair + matching trust store ----

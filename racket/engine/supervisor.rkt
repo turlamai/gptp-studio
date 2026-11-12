@@ -17,7 +17,7 @@
          racket/port
          racket/string
          racket/system
-         (prefix-in bus: "../app/bus.rkt")
+         (prefix-in bus: "../../app/bus.rkt")
          "config.rkt"
          "detect.rkt"
          "failure-diagnosis.rkt"

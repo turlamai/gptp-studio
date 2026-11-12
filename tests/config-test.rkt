@@ -6,7 +6,7 @@
 (require rackunit
          racket/list
          racket/string
-         "../engine/config.rkt")
+         "../racket/engine/config.rkt")
 
 (define gm (default-params-for-role 'grandmaster))
 (check-equal? (gptp-params-priority1 gm) 0)

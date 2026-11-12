@@ -2,7 +2,7 @@
 
 (require rackunit
          racket/hash
-         "../engine/qualification.rkt")
+         "../racket/engine/qualification.rkt")
 
 (define ready-nic
   (hasheq 'name "enp3s0"

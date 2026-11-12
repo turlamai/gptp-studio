@@ -8,11 +8,11 @@
 (require rackunit
          racket/file
          racket/list
-         "../capture/pcap-io.rkt"
-         "../capture/store.rkt"
-         "../capture/live.rkt"
-         "../proto/encode.rkt"
-         "../proto/decode.rkt")
+         "../racket/capture/pcap-io.rkt"
+         "../racket/capture/store.rkt"
+         "../racket/capture/live.rkt"
+         "../racket/proto/encode.rkt"
+         "../racket/proto/decode.rkt")
 
 (define frame1
   (build-ethernet-frame

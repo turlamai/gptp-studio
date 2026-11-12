@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require rackunit
-         "../support/platform-fingerprint.rkt")
+         "../racket/support/platform-fingerprint.rkt")
 
 (define fp (collect-platform-fingerprint))
 

@@ -7,9 +7,9 @@
 (require rackunit
          racket/list
          racket/string
-         "../engine/config.rkt"
-         "../engine/ptp4l.rkt"
-         "../engine/pmc-tuning.rkt")
+         "../racket/engine/config.rkt"
+         "../racket/engine/ptp4l.rkt"
+         "../racket/engine/pmc-tuning.rkt")
 
 ;; domain=1, transportSpecific=1; the other fields never reach pmc args.
 (define params

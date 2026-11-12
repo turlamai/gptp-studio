@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require rackunit
-         "../engine/process-runtime.rkt")
+         "../racket/engine/process-runtime.rkt")
 
 (define racket-exe (path->string (find-executable-path "racket")))
 

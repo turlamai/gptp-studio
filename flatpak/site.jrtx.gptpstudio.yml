@@ -15,7 +15,7 @@
 # like every family product, readelf on the release binary shows exactly two
 # NEEDED entries outside the GNOME Platform runtime — liblz4.so.1 and
 # libtinfo.so.6 — provided by the two small modules below. libpcap is NOT
-# bundled: capture/live.rkt loads it through the FFI with a defensive soname
+# bundled: racket/capture/live.rkt loads it through the FFI with a defensive soname
 # probe and treats a missing library as a reportable capability gap, so the
 # sandbox's runtime-set decides which capture features light up.
 app-id: site.jrtx.gptpstudio
@@ -34,7 +34,7 @@ finish-args:
   - --socket=x11
   - --device=dri
   - --share=ipc
-  # The startup update check is real behavior (support/updates.rkt): the
+  # The startup update check is real behavior (racket/support/updates.rkt): the
   # launch fetches the Ed25519-signed release manifest over HTTPS and a
   # consented update downloads the verified deb/tarball (staging only —
   # deb apply is an explicit apt handoff, tar.gz a guarded replacement;
@@ -49,18 +49,18 @@ finish-args:
   # ~/.local/share/gptp-studio scope to
   # ~/.var/app/site.jrtx.gptpstudio automatically (a Flatpak install starts
   # with fresh gate/entitlement state, per the family pattern). No bus
-  # socket: nothing in app/, capture/ or engine/ talks to D-Bus.
+  # socket: nothing in app/, racket/capture/ or racket/engine/ talks to D-Bus.
   #
   # Capability boundaries the sandbox cannot carry (the README flatpak
   # section documents both): live capture opens AF_PACKET raw sockets
-  # through the in-process libpcap FFI (capture/live.rkt) and no
+  # through the in-process libpcap FFI (racket/capture/live.rkt) and no
   # finish-arg grants CAP_NET_RAW, so the flatpak form is offline
   # pcap/pcapng analysis and export — capture/open failures surface as the
   # module's designed capability gap, never a startup crash; and the host
   # tools the engine probes from $PATH (ptp4l, phc2sys, ethtool, ip,
   # wireshark) are invisible in the sandbox, so engine detection, --doctor
   # and the Wireshark one-click integration report them missing instead of
-  # failing startup (engine/detect.rkt degrades by design).
+  # failing startup (racket/engine/detect.rkt degrades by design).
 modules:
   - name: lz4
     # Upstream keeps meson under build/ (flatpak-builder needs it at the

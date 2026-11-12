@@ -21,29 +21,29 @@ In scope:
 - The capture/analysis data plane: opening libpcap handles on a chosen
   NIC, the decoded-frame store, pcap file reading and writing, and what
   the application learns from captured frames
-  (`capture/live.rkt`, `capture/manager.rkt`, `capture/store.rkt`,
-  `capture/pcap-io.rkt`). Privilege handling for capture is part of this
+  (`racket/capture/live.rkt`, `racket/capture/manager.rkt`, `racket/capture/store.rkt`,
+  `racket/capture/pcap-io.rkt`). Privilege handling for capture is part of this
   surface: a capture the process is not entitled to open must fail with
   an actionable message, not fall back silently.
 - Privilege posture: how the app obtains capture and clock access
   (root, file capabilities or a `pkexec`-confirmed handoff) and the
   packaging guarantee that installers never grant privileges behind the
   operator's back — no `postinst` `setcap`, no sudoers edits
-  (`docs/architecture.md`, `support/doctor.rkt` shows the active path).
+  (`docs/architecture.md`, `racket/support/doctor.rkt` shows the active path).
 - Process supervision of the linuxptp tooling: spawning, restarting and
-  reporting `ptp4l` / `phc2sys` / `pmc` (`engine/supervisor.rkt`,
-  `engine/process-runtime.rkt`). Arguments must come from configuration,
+  reporting `ptp4l` / `phc2sys` / `pmc` (`racket/engine/supervisor.rkt`,
+  `racket/engine/process-runtime.rkt`). Arguments must come from configuration,
   never from analyzed traffic.
 - Update trust: verification of the Ed25519-signed `update-stable.json`
   feed and the downloaded artifact, key handling and rotation
-  (`support/updates.rkt`, `scripts/make-update-manifest.rkt`,
+  (`racket/support/updates.rkt`, `scripts/make-update-manifest.rkt`,
   `scripts/check-update-signing-key.sh`; key id `gptp-studio-2026-10`,
   pinned against the shipped anchor `app/keys/updater/public.pem`).
   Contract: [docs/update-contract.md](docs/update-contract.md).
 - The entitlement gate over updates: a Pro install stages exactly the
   releases its signed entitlement covers, and an unreadable candidate
   `published_at` refuses staging (fail-closed)
-  (`support/entitlement.rkt`, `support/updates.rkt`).
+  (`racket/support/entitlement.rkt`, `racket/support/updates.rkt`).
 - The host/backend boundary: the GTK4 host renders and interacts; the
   Racket backend (`app/backend.rkt`) decides. Crypto, capture policy or
   privilege logic sneaking into the C++ host is a bug.

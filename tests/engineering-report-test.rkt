@@ -3,7 +3,7 @@
 (require rackunit
          racket/list
          racket/string
-         "../support/engineering-report.rkt")
+         "../racket/support/engineering-report.rkt")
 
 (define offset-points
   (list (cons 1000.0 100)

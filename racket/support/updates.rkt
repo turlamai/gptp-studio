@@ -30,7 +30,7 @@
 ;; precedent).
 ;;
 ;; The product is a system deb: it never self-installs silently. The
-;; download/stage/apply flow lives in support/updater.rkt and only runs
+;; download/stage/apply flow lives in racket/support/updater.rkt and only runs
 ;; when the operator clicks through the UI. Air-gapped hosts:
 ;; --no-update-check skips everything; GPTP_UPDATE_MANIFEST_URL (if set)
 ;; must be HTTPS — the signed scheme refuses plain HTTP by design.

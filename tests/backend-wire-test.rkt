@@ -12,7 +12,7 @@
          racket/string
          rivet/backend
          rivet/protocol
-         "../engine/detect.rkt")
+         "../racket/engine/detect.rkt")
 
 (define scratch (make-temporary-file "gptp-studio-wire-~a" 'directory))
 (putenv "GPTP_STUDIO_HOME" (path->string scratch))

@@ -2,7 +2,7 @@
 
 (require rackunit
          racket/string
-         "../engine/failure-diagnosis.rkt")
+         "../racket/engine/failure-diagnosis.rkt")
 
 (define (kind stderr [process "ptp4l"])
   (hash-ref

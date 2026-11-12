@@ -3,8 +3,8 @@
 (require rackunit
          racket/file
          racket/string
-         "../engine/config.rkt"
-         "../engine/runtime-config.rkt")
+         "../racket/engine/config.rkt"
+         "../racket/engine/runtime-config.rkt")
 
 (define run-dir (build-path (find-system-path 'temp-dir) "gptp-studio-runtime-test"))
 (define gm (default-params-for-role 'grandmaster))

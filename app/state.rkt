@@ -7,13 +7,13 @@
          racket/file
          racket/path
          (prefix-in bus: "bus.rkt")
-         "../data/series.rkt"
-         "../data/logstore.rkt"
-         "../data/preset.rkt"
-         "../capture/store.rkt"
-         "../capture/manager.rkt"
-         "../engine/config.rkt"
-         "../engine/supervisor.rkt")
+         "../racket/data/series.rkt"
+         "../racket/data/logstore.rkt"
+         "../racket/data/preset.rkt"
+         "../racket/capture/store.rkt"
+         "../racket/capture/manager.rkt"
+         "../racket/engine/config.rkt"
+         "../racket/engine/supervisor.rkt")
 
 (provide app-wv-box
          app-bus

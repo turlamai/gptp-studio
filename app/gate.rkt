@@ -20,8 +20,8 @@
          racket/file
          racket/string
          permit
-         "../support/entitlement.rkt"
-         "../support/updates.rkt"
+         "../racket/support/entitlement.rkt"
+         "../racket/support/updates.rkt"
          racket/runtime-path)
 
 (provide gate-init!

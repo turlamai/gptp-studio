@@ -6,7 +6,7 @@
 
 (require rackunit
          racket/string
-         "../support/wireshark.rkt")
+         "../racket/support/wireshark.rkt")
 
 (test-equal? "L2 filter" (gptp-capture-filter "L2") "ether proto 0x88f7")
 (test-equal? "UDPv4 filter" (gptp-capture-filter "UDPv4") "port 319 or port 320")
