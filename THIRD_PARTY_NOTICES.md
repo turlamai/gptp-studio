@@ -6,11 +6,11 @@ replace the license terms that apply to each component.
 
 ## Glaze
 
-Project: `turinglambdaai/glaze`
+Project: `turlamai/glaze`
 
 License: MIT
 
-Copyright (c) 2025 turinglambdaai
+Copyright (c) 2025 TurLamAI (formerly turinglambdaai)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
