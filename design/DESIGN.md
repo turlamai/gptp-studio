@@ -18,24 +18,19 @@ Tokens 逐值提取自 `linux/src/main.cpp` 的 `Palette kLight / kDark`（"indu
 - **证据可回溯**：告警关联报文号与引擎事件，报告/日志/诊断一键复制导出；工程师能从一条告警走到对应 Sync 帧再走回配置。
 - **防错一致**：真实引擎启动前必先 Preflight；停止引擎、清空报文、移除许可证属破坏性操作需确认；权限路径（CAP_NET_ADMIN 等）由 Doctor/Preflight 明示，绝不静默提权。
 
-## Tokens（与实现 1:1）
+## Tokens（语义；值不在此复制）
 
-| Token | Light | Dark | 用途 |
-|---|---|---|---|
-| `--bg` | `#E3F2FD` | `#17202b` | 画布（page_bg） |
-| `--surface` | `#FFFFFF` | `#223045` | 卡片（card_bg） |
-| `--rail` | `#FFFFFF` | `#1e2a38` | 侧栏/状态栏（sidebar_bg） |
-| `--topbar-a → b` | `#0D47A1 → #1565C0` | `#0d2039 → #16345c` | 顶栏品牌渐变（只此一处用深蓝大面积） |
-| `--line` | `#dce7f5` | `#2e4258` | 分隔/描边 |
-| `--ink` | `#1e293b` | `#e8eef5` | 主文字 |
-| `--mute` | `#64748b` | `#8aa0b8` | 次级文字 |
-| `--accent` | `#2196F3` | `#2196F3` | 选中/链接/主按钮/进行态 |
-| `--accent-strong` | `#1565C0` | `#1565C0` | accent 深态（hover/描边） |
-| `--hover` | `rgba(33,150,243,.10)` | `rgba(33,150,243,.16)` | 悬浮底 |
-| `--warn` | `#FF9800` | `#FF9800` | 角色徽标/告警线/漂移态 |
-| `--danger` | `#F44336` | `#F44336` | 失锁/FAIL/错误 |
-| `--ok`（新增） | `#26a269` | `#33d17a` | 锁定/PASS/运行中；GTK stock success 家族，实现可用 `success` 类对齐 |
-| `--*-soft`（新增） | 各状态色 12–16% alpha | 同左 | 状态徽标弱底；实现按 `alpha()` 对应 |
+值类 token 真源 = `linux/src/main.cpp` 的 `Palette kLight / kDark`（"industrial blue" 主题，自 1.0 演示层移植）；原型 `design/prototype/shared.css` 与其一一对应，本表只记语义与推导来源。
+
+| Token | 语义 | 来源 |
+|---|---|---|
+| `--bg --surface --rail` | 画布 / 卡片 / 侧栏与状态栏 | 实现值 |
+| `--topbar-a → b` | 顶栏品牌渐变（只此一处用深蓝大面积） | 实现值 |
+| `--line` | 分隔/描边 | 实现值 |
+| `--ink --mute` | 主/次级文字 | 实现值 |
+| `--accent --accent-strong --hover` | 选中/链接/主按钮/进行态 + 深态 + 悬浮底 | 实现值 |
+| `--warn --danger` | 角色徽标/告警线/漂移态 / 失锁·FAIL·错误 | 实现值 |
+| `--ok --*-soft` | 锁定/PASS/运行中（GTK stock success 家族对齐）+ 状态徽标 12–16% alpha 弱底 | 新增推导 |
 
 - **字体**：`system-ui, -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei"`；正文 14px/1.55，卡片标题 12px/600，页面标题 17px/700；等宽 `ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace`（报文行 12px、指标值 17px/600）。
 - **圆角**：窗口 12px · 卡片 10px · 侧栏行 8px · 控件 6px · 徽标 13px。**间距节奏**：4/8/12/16/24。**动效**：120ms ease，不过度。
