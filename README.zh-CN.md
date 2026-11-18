@@ -14,7 +14,7 @@ gPTP Studio 现在明确定位为 **Linux-only 产品**。原因不是 UI 能不
 
 ## 开始使用
 
-工程预览。规划有官方专业版，此处尚不提供购买或硬件精度保证。 仅支持 Linux，提供 x64 和 arm64 发布附件。Windows 和 macOS 不属于产品目标。真实抓包与 PHC 操作需要兼容硬件和适当权限。
+工程预览。所有已实现工程功能开放验证，不设付费或试用限制；硬件精度仍以真实测量为准。 仅支持 Linux，提供 x64 和 arm64 发布附件。Windows 和 macOS 不属于产品目标。真实抓包与 PHC 操作需要兼容硬件和适当权限。
 
 [安装、首次使用、隐私与备份恢复](docs/USER-GUIDE.zh-CN.md) · [English](docs/USER-GUIDE.md)
 
@@ -31,7 +31,6 @@ gPTP Studio 现在明确定位为 **Linux-only 产品**。原因不是 UI 能不
 - **GM 运行时调优**：经 `pmc GRANDMASTER_SETTINGS_NP` 在线修改 clockClass、clockAccuracy、timeSource 与 BMCA 优先级，无需重启引擎（Pro）
 - **Wireshark 一键联动**：实时（gPTP 捕获过滤器）或回放保留报文；工程报告导出 JSON/Markdown
 - **聚合日志与预设**：引擎、抓包、应用事件统一观察
-- **离线授权**：适合内网和保密研发环境，不依赖云端许可服务
 
 ## 正式支持平台
 
@@ -187,22 +186,9 @@ Linux 更新渠道使用 Ed25519 签名的发布资产清单（`update-manifest.
 | 报文分析 | 抓包、报文表、解码树、精确时间戳元数据、hex、导入导出 |
 | 运行与日志 | 进程状态、日志、预设、许可证 |
 
-## 版本与授权
+## 开发版本与更新
 
-| | 官方 Free | 官方 Pro |
-|---|---|---|
-| 监听抓包 + 报文解码 | ✅ | ✅ |
-| 离线 pcap 导入 | ✅ | ✅ |
-| 模拟器 | ✅ | ✅ |
-| 配置编辑 + `ptp4l.conf` 预览 | ✅ | ✅ |
-| GM / 从钟引擎控制 | — | ✅ |
-| 参考源（`phc2sys`） | — | ✅ |
-| pcap 导出 | — | ✅ |
-| 报文存储 | 2,000 帧 | 50,000 帧 |
-
-源码采用 Apache-2.0。Free / Pro 描述的是**官方分发版本**中的产品体验、更新 entitlement 与支持服务，不会撤销或缩小 Apache-2.0 已经授予的权利。自行构建或修改的 Apache-2.0 版本不自动成为官方 Pro 构建，也不附带官方更新、支持和参考平台验证承诺。
-
-每个官方安装包自带 14 天 Pro 试用。定价见 [PRICING.md](PRICING.zh-CN.md)，许可模型见 [docs/licensing-model.md](docs/licensing-model.md)。
+开发预览不使用付费授权或限时试用，已实现的工程能力可直接验证。自动更新仍必须通过发行签名校验。
 
 ## 架构原则
 
