@@ -108,7 +108,7 @@ TrEntry const kStrings[] = {
     {"page-packets", "报文", "Packets"},
     {"page-logs", "日志", "Logs"},
     {"page-tuning", "GM 调优", "GM Tuning"},
-    {"page-license", "许可与报告", "License & Reports"},
+    {"page-license", "工程报告", "Engineering Reports"},
     {"label-role", "角色", "Role"},
     {"label-mode", "模式", "Mode"},
     {"label-iface", "网卡", "Interface"},
@@ -134,9 +134,8 @@ TrEntry const kStrings[] = {
     {"count-stored-total", "已存 {0} / 共 {1} 条", "{0} stored / {1} total"},
     {"btn-export-logs", "导出日志", "Export Logs"},
     {"tuning-note",
-     "GM 运行调优经 pmc GRANDMASTER_SETTINGS_NP 作用于运行中的引擎（Pro）。",
-     "GM runtime tuning applies through pmc GRANDMASTER_SETTINGS_NP on the "
-     "running engine (Pro)."},
+     "GM 运行调优经 pmc GRANDMASTER_SETTINGS_NP 作用于运行中的引擎；需要已通过安全检查的受测网络环境。",
+     "GM runtime tuning applies through pmc GRANDMASTER_SETTINGS_NP on the running engine; use a safely qualified test network."},
     {"btn-apply-gm", "应用到运行中的引擎", "Apply to Running Engine"},
     {"caption-license-tier", "许可档位", "License tier"},
     {"caption-installation-id", "安装 ID", "Installation ID"},
@@ -146,11 +145,8 @@ TrEntry const kStrings[] = {
     {"btn-export-report", "导出工程报告", "Export Engineering Report"},
     {"btn-export-diagnostics", "导出诊断", "Export Diagnostics"},
     {"license-note",
-     "离线 Permit 凭据（.permit.json），不依赖云服务。真实引擎角色与导出需要 "
-     "Pro。申请绑定安装的许可证时，请把安装 ID 交给供应商。",
-     "Offline Permit credentials (.permit.json); no cloud dependency. "
-     "Real-engine roles and exports require Pro. Hand the installation "
-     "ID to the vendor when requesting an installation-bound license."},
+     "工程报告与诊断可用于开发验证。真实网卡/PHC 操作仍须具备权限和经过确认的实验环境。",
+     "Engineering reports and diagnostics are available for development. Real NIC/PHC operations still require permission and a qualified test environment."},
     {"tooltip-menu", "菜单", "Menu"},
     {"status-starting-backend", "正在启动内嵌 Racket CS…",
      "Starting embedded Racket CS…"},
@@ -979,8 +975,6 @@ void apply_gate_info(rivet_app::GateInfo const& gate) {
   std::string suffix;
   if (gate.tier == "trial") {
     suffix = tr("tier-suffix-trial");
-  } else if (gate.pro) {
-    suffix = tr("tier-suffix-pro");
   }
   gtk_label_set_text(g_state.gate_value, (gate.tier + suffix).c_str());
   gtk_label_set_text(g_state.installation_value, gate.installation_id.c_str());
@@ -2440,7 +2434,10 @@ GtkWidget* build_license_page() {
   gtk_widget_add_css_class(note, "count-caption");
   gtk_label_set_xalign(GTK_LABEL(note), 0.0F);
 
+  // Legacy trial and activation RPC widgets remain allocated only for schema
+  // compatibility. Retired billing controls must not appear in the UI.
   gtk_box_append(GTK_BOX(page), license_card);
+  gtk_widget_set_visible(license_card, FALSE);
   gtk_box_append(GTK_BOX(page), export_card);
   gtk_box_append(GTK_BOX(page), note);
 
