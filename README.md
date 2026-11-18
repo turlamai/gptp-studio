@@ -212,9 +212,9 @@ installation's upgrade/restart has passed native acceptance.
 | pcap export | — | ✅ |
 | Packet store | 2,000 frames | 50,000 frames |
 
-The source code is Apache-2.0. Free/Pro describe the product experience, update entitlement and support attached to **official distributions**; they do not revoke rights already granted by Apache-2.0. Self-built or modified Apache-2.0 versions are not automatically official Pro builds and do not carry official update/support/validation commitments.
+The source code is Apache-2.0. Free/Pro describe the product experience, update entitlement and support attached to **official distributions**; they do not revoke rights already granted by Apache-2.0. Self-built or modified Apache-2.0 versions do not automatically carry official release branding, support or validation commitments.
 
-Every official install starts with a 14-day Pro trial. See [PRICING.md](PRICING.md) and [docs/licensing-model.md](docs/licensing-model.md).
+All engineering controls are available in the development preview without a trial or purchase. Signed update verification remains mandatory.
 
 ## Architecture
 
