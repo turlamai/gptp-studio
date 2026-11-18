@@ -1,5 +1,7 @@
 # gPTP Studio
 
+**Product:** [Website](https://gptp-studio.jrtx.site/) · **Support:** [Issues & feedback](https://github.com/turlamai/gptp-studio/issues) · [Development policy](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.md)
+
 **A Linux-native gPTP / IEEE 802.1AS debugging workstation for Automotive Ethernet.**
 
 [![CI](https://github.com/turlamai/gptp-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/turlamai/gptp-studio/actions/workflows/ci.yml) ![Platform](https://img.shields.io/badge/platform-Linux-blue) ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420) ![Racket](https://img.shields.io/badge/Racket-9F1D20?logo=racket&logoColor=white) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
