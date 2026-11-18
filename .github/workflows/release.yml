@@ -92,8 +92,6 @@ jobs:
       - name: Install Rivet (pinned release package)
         run: raco pkg install --auto --no-docs --ignore-checksums "https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}"
 
-      - name: Install Permit (entitlement gate dependency)
-        run: raco pkg install --auto --no-docs --ignore-checksums https://github.com/turlamai/permit.git
 
       # --development matches the family precedent of running the full
       # package + smoke + installer flow without production platform
@@ -198,8 +196,6 @@ jobs:
       - name: Install Rivet (pinned release package)
         run: raco pkg install --auto --no-docs --ignore-checksums "https://github.com/turlamai/rivet.git#${{ env.RIVET_PIN }}"
 
-      - name: Install Permit (entitlement gate dependency)
-        run: raco pkg install --auto --no-docs --ignore-checksums https://github.com/turlamai/permit.git
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
