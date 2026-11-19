@@ -1,7 +1,5 @@
 # gPTP Studio
 
-**产品：**[产品主页](https://gptp-studio.jrtx.site/) · **支持：**[问题与反馈](https://github.com/turlamai/gptp-studio/issues) · [当前交付策略](https://github.com/turlamai/turlamai.github.io/blob/master/PORTFOLIO.zh-CN.md)
-
 **面向 Automotive Ethernet 的 Linux 原生 gPTP / IEEE 802.1AS 专业调试工作站。**
 
 [![CI](https://github.com/turlamai/gptp-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/turlamai/gptp-studio/actions/workflows/ci.yml) ![Platform](https://img.shields.io/badge/platform-Linux-blue) ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420) ![Racket](https://img.shields.io/badge/Racket-9F1D20?logo=racket&logoColor=white) [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
