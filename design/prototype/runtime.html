@@ -11,7 +11,7 @@
   .proc td, .proc th { padding: 4px 10px; }
   .lv { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: nowrap; }
   .chip {
-    font-size: 11.5px; font-weight: 600; border-radius: 99px; padding: 2px 10px;
+    font-size: 12px; font-weight: 600; border-radius: 99px; padding: 2px 10px;
     border: 1px solid var(--line); background: var(--surface); color: var(--mute); cursor: pointer;
   }
   .chip.on { background: var(--hover); border-color: var(--accent); color: var(--accent); }
@@ -19,16 +19,16 @@
   .search {
     display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
-    color: var(--mute); font-size: 12.5px; flex: 1; min-width: 0;
+    color: var(--mute); font-size: 13px; flex: 1; min-width: 0;
   }
-  .preset { display: flex; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .preset { display: flex; align-items: center; gap: 8px; padding: 7px 2px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .preset:last-child { border-bottom: none; }
   .preset .nm { font-weight: 600; }
-  .preset .ds { color: var(--mute); font-size: 11.5px; }
+  .preset .ds { color: var(--mute); font-size: 12px; }
   .preset .sp { flex: 1; }
   .lic .tier { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
   .lic .tier .nm { font-size: 15px; font-weight: 700; }
-  .lic .kv { display: grid; grid-template-columns: 84px 1fr; gap: 3px 10px; font-size: 12.5px; margin: 8px 0 10px; }
+  .lic .kv { display: grid; grid-template-columns: 84px 1fr; gap: 3px 10px; font-size: 13px; margin: 8px 0 10px; }
   .lic .k { color: var(--mute); }
   .lic .v { font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
   .lic .acts { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -68,7 +68,7 @@
         <div class="view">
           <div class="col" style="margin-bottom:12px">
             <div class="card">
-              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">进程（linuxptp 生命周期）</h3>
+              <h3 style="font-size: 13px;font-weight:600;margin-bottom:6px">进程（linuxptp 生命周期）</h3>
               <table class="tbl proc">
                 <tr><th>进程</th><th>状态</th><th class="n">PID</th><th>运行时长</th></tr>
                 <tr><td class="mono">ptp4l</td><td><span class="state ok"><i></i>运行中</span></td><td class="n">4021</td><td class="n">24 min</td></tr>
@@ -78,7 +78,7 @@
               <div class="hint" style="margin-top:8px">最近一次启动失败：<span class="mono">无</span>。失败详情与修复指引自动保留在日志中。</div>
             </div>
             <div class="card">
-              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">场景预设</h3>
+              <h3 style="font-size: 13px;font-weight:600;margin-bottom:6px">场景预设</h3>
               <div class="preset"><span class="nm">车载双端口 BC</span><span class="ds">enp3s0 + eth3 · Domain 0 · Sync −3</span><span class="sp"></span><button class="btn">应用</button><button class="btn destructive" title="需确认">删除</button></div>
               <div class="preset"><span class="nm">GM + GNSS 参考源</span><span class="ds">GrandMaster · phc2sys ← 系统时钟</span><span class="sp"></span><button class="btn">应用</button><button class="btn destructive" title="需确认">删除</button></div>
               <div class="preset"><span class="nm">模拟器故障注入</span><span class="ds">Sync 丢弃 + offset 尖峰 · 负向测试</span><span class="sp"></span><button class="btn">应用</button><button class="btn destructive" title="需确认">删除</button></div>
@@ -115,7 +115,7 @@
               </div>
             </div>
             <div class="card">
-              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:8px">工程报告（证据链导出）</h3>
+              <h3 style="font-size: 13px;font-weight:600;margin-bottom:8px">工程报告（证据链导出）</h3>
               <div class="hint" style="margin-bottom:10px">报告包含运行配置、Preflight 结果、告警事件与关联报文号，供复现、售后与硬件资格记录；不代表已校准时间精度。</div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn primary">导出 JSON</button>

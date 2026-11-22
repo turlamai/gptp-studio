@@ -8,8 +8,8 @@
 <style>
   /* ==== 链路与网卡页面专属 ==== */
   .nic h3 { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
-  .nic h3 .mono { font-size: 12.5px; }
-  .kv { display: grid; grid-template-columns: 108px 1fr; gap: 3px 10px; font-size: 12.5px; margin-top: 8px; }
+  .nic h3 .mono { font-size: 13px; }
+  .kv { display: grid; grid-template-columns: 108px 1fr; gap: 3px 10px; font-size: 13px; margin-top: 8px; }
   .kv .k { color: var(--mute); }
   .kv .v { font-family: ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
   .kv .v .mark-ok { color: var(--ok); font-weight: 600; }
@@ -17,7 +17,7 @@
   .note { font-size: 12px; line-height: 1.5; margin-top: 8px; padding: 7px 10px; border-radius: 6px; background: var(--hover); color: var(--mute); }
   .note.warn { background: var(--warn-soft); color: var(--warn); }
   .layout { display: grid; grid-template-columns: 1.15fr 1fr; gap: 12px; min-width: 0; }
-  .checks .row { display: flex; align-items: center; gap: 9px; padding: 6px 4px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+  .checks .row { display: flex; align-items: center; gap: 9px; padding: 6px 4px; border-bottom: 1px solid var(--line); font-size: 13px; }
   .checks .row:last-child { border-bottom: none; }
   .checks .ic { width: 46px; text-align: left; font-weight: 700; flex: none; }
   .checks .ok { color: var(--ok); } .checks .bad { color: var(--danger); font-weight: 600; }
@@ -91,7 +91,7 @@
           </div>
           <div class="layout">
             <div class="card checks">
-              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">Preflight — enp3s0 · 2026-11-11 14:00:32</h3>
+              <h3 style="font-size: 13px;font-weight:600;margin-bottom:6px">Preflight — enp3s0 · 2026-11-11 14:00:32</h3>
               <div class="row"><span class="ic ok">✓</span>硬件时间戳（TX/RX）<span class="why">ethtool -T enp3s0</span></div>
               <div class="row"><span class="ic ok">✓</span>PHC 设备 /dev/ptp0<span class="why">sysfs</span></div>
               <div class="row"><span class="ic ok">✓</span>linuxptp 已安装<span class="why">ptp4l 4.2 · phc2sys 4.2</span></div>
@@ -105,7 +105,7 @@
               </div>
             </div>
             <div class="card">
-              <h3 style="font-size:12.5px;font-weight:600;margin-bottom:6px">实际抓包时间戳路径（能力 ≠ 已校准精度）</h3>
+              <h3 style="font-size: 13px;font-weight:600;margin-bottom:6px">实际抓包时间戳路径（能力 ≠ 已校准精度）</h3>
               <div class="kv">
                 <span class="k">NIC 能力</span><span class="v">硬件 TX/RX + PHC</span>
                 <span class="k">实际 source</span><span class="v">硬件 · PHC /dev/ptp0</span>
