@@ -1,0 +1,10 @@
+{
+  "name": "gptp-studio-prototype",
+  "private": true,
+  "scripts": {
+    "test": "node tests/interactions.cjs"
+  },
+  "devDependencies": {
+    "jsdom": "31.0.1"
+  }
+}
