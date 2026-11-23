@@ -1,7 +1,8 @@
-# gPTP Studio DESIGN.md — 视觉与交互契约（单一真源）
+# gPTP Studio DESIGN.md — 视觉与交互契约
 
-原型（`design/prototype/`）与实现（`linux/src/main.cpp` DESIGN-TOKENS）都遵循本文件；改视觉先改这里，再同步实现。
-原始 Tokens 提取自 `linux/src/main.cpp` 的 `Palette kLight / kDark`（"industrial blue" 主题，自 1.0 演示层移植），保证原型 → GTK 实现零翻译成本；新增 token（状态底色、success 绿）在表中注明推导来源。
+原型（`design/prototype/`）与实现（`linux/src/main.cpp` DESIGN-TOKENS）都遵循本文件的语义、不变式与差异声明；**数值不在此复制**。
+
+**真源分工**：颜色、字体栈、字号、圆角、间距与动效时长的具体值以 `design/prototype/shared.css` 为唯一真源（亮暗成对；"industrial blue" 主题自 1.0 演示层移植，宿主实现须与 CSS 对齐）；本文件只记语义名、用途与推导来源。改值改 CSS，改语义改本文件。
 
 ## Brief（2026-11-11 家族试点）
 
@@ -18,27 +19,27 @@
 - **证据可回溯**：告警关联报文号与引擎事件，报告/日志/诊断一键复制导出；工程师能从一条告警走到对应 Sync 帧再走回配置。
 - **防错一致**：真实引擎启动前必先 Preflight；停止引擎、清空报文、删除预设属破坏性操作需确认；权限路径（CAP_NET_ADMIN 等）由 Doctor/Preflight 明示，绝不静默提权。
 
-## Tokens（与实现 1:1）
+## Tokens（语义与来源；值见 `shared.css`）
 
-| Token | Light | Dark | 用途 |
-|---|---|---|---|
-| `--bg` | `#E3F2FD` | `#17202b` | 画布（page_bg） |
-| `--surface` | `#FFFFFF` | `#223045` | 卡片（card_bg） |
-| `--rail` | `#FFFFFF` | `#1e2a38` | 侧栏/状态栏（sidebar_bg） |
-| `--topbar-a → b` | `#0D47A1 → #1565C0` | `#0d2039 → #16345c` | 顶栏品牌渐变（只此一处用深蓝大面积） |
-| `--line` | `#dce7f5` | `#2e4258` | 分隔/描边 |
-| `--ink` | `#1e293b` | `#e8eef5` | 主文字 |
-| `--mute` | `#64748b` | `#8aa0b8` | 次级文字 |
-| `--accent` | `#2196F3` | `#2196F3` | 选中/链接/主按钮/进行态 |
-| `--accent-strong` | `#1565C0` | `#1565C0` | accent 深态（hover/描边） |
-| `--hover` | `rgba(33,150,243,.10)` | `rgba(33,150,243,.16)` | 悬浮底 |
-| `--warn` | `#FF9800` | `#FF9800` | 角色徽标/告警线/漂移态 |
-| `--danger` | `#F44336` | `#F44336` | 失锁/FAIL/错误 |
-| `--ok`（新增） | `#26a269` | `#33d17a` | 锁定/PASS/运行中；GTK stock success 家族，实现可用 `success` 类对齐 |
-| `--*-soft`（新增） | 各状态色 12–16% alpha | 同左 | 状态徽标弱底；实现按 `alpha()` 对应 |
+| Token | 用途 | 来源 |
+|---|---|---|
+| `--bg` | 画布（page_bg） | 原始 Palette |
+| `--surface` | 卡片（card_bg） | 原始 Palette |
+| `--rail` | 侧栏/状态栏（sidebar_bg） | 原始 Palette |
+| `--topbar-a → b` | 顶栏品牌渐变（只此一处用深蓝大面积） | 原始 Palette |
+| `--line` | 分隔/描边 | 原始 Palette |
+| `--ink` | 主文字 | 原始 Palette |
+| `--mute` | 次级文字 | 原始 Palette |
+| `--accent` | 选中/链接/主按钮/进行态 | 原始 Palette（2026-11-14 修订后为交互蓝） |
+| `--accent-strong` | accent 深态（hover/描边） | 原始 Palette |
+| `--hover` | 悬浮底 | 由 accent 按透明度派生 |
+| `--warn` | 角色徽标/告警线/漂移态（2026-11-14 起：角色为中性标签，告警色只给告警） | 原始 Palette |
+| `--danger` | 失锁/FAIL/错误 | 原始 Palette |
+| `--ok` | 锁定/PASS/运行中 | 新增：GTK stock success 家族，实现可用 `success` 类对齐 |
+| `--*-soft` | 状态徽标弱底 | 新增：各状态色按 alpha 派生；实现按 `alpha()` 对应 |
 
-- **字体**：`system-ui, -apple-system, "Segoe UI", Ubuntu, Cantarell, "Noto Sans CJK SC", "PingFang SC", "Microsoft YaHei"`；正文 14px/1.55，卡片标题 12px/600，页面标题 17px/700；等宽 `ui-monospace, "Ubuntu Mono", Menlo, Consolas, monospace`（报文行 12px、指标值 17px/600）。
-- **圆角**：窗口 12px · 卡片 10px · 侧栏行 8px · 控件 6px · 徽标 13px。**间距节奏**：4/8/12/16/24。**动效**：120ms ease，不过度。
+- **字体角色**：系统 sans 栈；正文、卡片标题、页面标题各有层级；报文行与指标值一律等宽（Ubuntu Mono 系）。字号/行高见 `shared.css`。
+- **几何与动效**：窗口 / 卡片 / 侧栏行 / 控件 / 徽标圆角、间距节奏与动效时长均以 `shared.css` 为准，动效不过度。
 - **语言**：界面文案中文为主（`app/i18n.rkt` zh 源），协议值（角色名、端口状态、PTP 字段名）按产品约定保留英文不译。
 
 ## 组件词汇
@@ -77,12 +78,10 @@
 
 ### 视觉契约
 
-- 画布亮/暗：`#f2f5fa` / `#141e2b`；表面 `#ffffff` / `#1c2a3c`；主文字 `#192b43` / `#edf3fb`；辅助文字 `#53657c` / `#b0bed0`。
-- 品牌深蓝仅用于顶栏：`#0d3470 → #14529b`。交互蓝 `#155bb5` / `#8ebdff`，主按钮底色 `#155bb5` / `#235fae`，白色按钮字。
-- 状态文字亮/暗：成功 `#187246` / `#76dca8`，警告 `#855000` / `#ffd078`，错误 `#b32736` / `#ff9da9`；与浅色语义底配套。角色为中性标签，不占用告警色。
-- 正文 16px/1.6，表格与协议数据 13–14px/1.6，页标题 28px，指标 clamp(28px, 3vw, 40px)；保留系统字体与等宽数据字体。间距 4/8/12/16/24/32，卡片圆角 8px，控件 6px。
+- 本轮起 `shared.css` 是唯一数值真源：画布、表面、主/辅助文字、顶栏品牌深蓝、交互蓝与主按钮、成功/警告/错误状态文字均亮暗成对定义在 CSS；角色为中性标签，不占用告警色。
+- 字体层级（正文、表格与协议数据、页标题、指标）保留系统字体与等宽数据字体；间距节奏、卡片与控件圆角均见 CSS。
 - 侧栏稳定展示五个已实现页面；参考源不显示为失效导航。专业桌面为主要环境，小窗口重排导航与面板，数据表格只在独立区域横向滚动。
-- 统一 outline SVG 功能图标；150–200ms 状态反馈，支持 reduced-motion；保留亮暗主题、键盘焦点、语义表单和原生确认对话框。
+- 统一 outline SVG 功能图标；状态反馈短促（见 CSS），支持 reduced-motion；保留亮暗主题、键盘焦点、语义表单和原生确认对话框。
 
 ### 流程与数据不变式
 
@@ -119,7 +118,7 @@
 - 表单校验使用字段集合，并按当前角色只校验可用参数；监听不被隐藏的 Priority / 发送周期字段阻断。
 - 停止后总览当前测量指标显示空值，历史曲线保留并明确标注快照。
 - 回归脚本：`tests/interactions.cjs`，开发依赖与执行入口见 `package.json`。导出测试检查实际 Blob 的 JSON、Markdown 与日志文本，不只匹配源码。
-- 本轮采用 DOM 脚本交互验证；浏览器因系统权限无法启动，浏览器连接与 Open Design 界面控制不可用。没有完成真实视觉预览、375px/桌面布局、原生对话框焦点约束或浏览器下载验证，不将 DOM 通过视为这些项目已通过。
+- 本轮采用 DOM 脚本交互验证；浏览器因系统权限无法启动，浏览器连接与 Open Design 界面控制不可用。没有完成真实视觉预览、窄屏/桌面布局、原生对话框焦点约束或浏览器下载验证，不将 DOM 通过视为这些项目已通过。
 
 
 ## 2026-11-22 聚焦功能
