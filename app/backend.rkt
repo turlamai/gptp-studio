@@ -872,13 +872,14 @@
        #:packets (packet-store-snapshot app-packets 5000)
        #:logs (log-snapshot app-logs #:limit 300)
        #:offset-jump-threshold-ns threshold-ns))
+    (define out-path (string->path path))
     (define markdown-path
       (if (regexp-match? #rx"[.]json$" path)
-          (path-replace-extension path #".md")
-          path))
-    (write-engineering-report-json! path report)
+          (path-replace-extension out-path #".md")
+          out-path))
+    (write-engineering-report-json! out-path report)
     (write-engineering-report-markdown! markdown-path report)
-    (ok-action (hasheq 'json (path->string path)
+    (ok-action (hasheq 'json (path->string out-path)
                        'markdown (path->string markdown-path))))]))
 
 (define-rpc (params-merge

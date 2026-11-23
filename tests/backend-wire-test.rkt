@@ -143,9 +143,9 @@
    (check-false stop-error)
    (check-equal? (list-ref stopped 0) "#f")
 
-   ;; Raw-data access is free scope (the 2026-10-auth-1 decision): pcap
-   ;; export answers on the wire with no entitlement at all, while the
-   ;; engineering report refuses with need-pro before doing any work.
+   ;; The 2026-11-18 quality-first decision retired the paid runtime gate
+   ;; (13a2a62): both raw export and the engineering report answer on the
+   ;; wire with no entitlement in the development preview.
    (define export-path (build-path scratch "free-export.pcap"))
    (define-values (exported export-error)
      (call-rpc "pcap-export" (path->string export-path)))
@@ -157,8 +157,10 @@
    (define-values (report report-error)
      (call-rpc "report-export" (path->string report-path) "" "" ""))
    (check-false report-error)
-   (check-equal? (take report 2) (list #f #t))
-   (check-false (file-exists? report-path) "the refused report wrote nothing"))
+   (check-equal? (take report 2) (list #t #f))
+   (check-true (file-exists? report-path) "the report wrote a JSON evidence file")
+   (check-true (file-exists? (path-replace-extension report-path #".md"))
+               "the report wrote a Markdown evidence file"))
  (lambda ()
    (kill-thread server-thread)
    (delete-directory/files scratch)))
