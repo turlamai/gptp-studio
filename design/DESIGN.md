@@ -112,6 +112,16 @@
 - 原型边界集中在状态栏与接入说明，不在每个面板重复；工程报告保持现有范围。无真实引擎、权限或 pcap 服务接入。
 
 
+## 2026-11-25 入口修正：五页统一为交互原型的薄壳
+
+此前 `prototype/{overview,nics,config,packets,runtime}.html` 仍是 11-10 的静态稿（含已撤销的 Pro 徽标与「参考源」导航），而 `app.js` 的导航与回归脚本都指向它们，导致直接进入、主题切换、重开页面等 12 项回归失败，且 CI 不执行这组脚本。
+
+- 唯一入口形态：`index.html`（`data-root`，根入口）与 `prototype/<page>.html`（`data-page="<page>"`）都是加载 `shared.css` + `app.js` 的薄壳，只提供 `#app`、确认对话框与 toast 容器；页面内容一律由 `app.js` 渲染，不在 HTML 里写第二份界面。
+- 五个薄壳除 `data-page` 与 `<title>` 外逐字相同；改壳先改一处再同步其余四个。
+- `tests/interactions.cjs` 进入 CI（`npm ci` + `npm test`）；该脚本仍只验证 DOM 交互，不代表浏览器渲染、布局或对比度已通过。
+- 本轮不改视觉：`shared.css` 尚未覆盖 `app.js` 使用的类名，浏览器实际渲染仍是无样式状态，另行按家族设计规范补齐并做实物截图验收。
+
+
 ## 2026-11-20 交互回归修订
 
 - 导航委托仅匹配导航链接，页面 body 的 data-page 不得吞掉按钮、选择器或报文行操作。
