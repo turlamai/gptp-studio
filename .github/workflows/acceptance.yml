@@ -33,7 +33,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes at-spi2-core dbus-x11 libgtk-4-dev \
             libglib2.0-dev libsecret-1-dev libpcap-dev linuxptp ethtool \
-            iproute2 libcap2-bin python3-pyatspi weston
+            iproute2 libcap2-bin python3-pyatspi weston \
+            xvfb xdotool imagemagick fonts-noto-cjk
           raco pkg install --auto --no-docs \
             "https://github.com/turlamai/rivet.git#${RIVET_PIN}"
           raco pkg install --auto --no-docs --ignore-checksums \
@@ -45,6 +46,14 @@ jobs:
           mkdir -p .rivet/acceptance
           dbus-run-session -- bash -c \
             'set -euo pipefail; raco rivet acceptance --json | tee .rivet/acceptance/report.json'
+      # Evidence only: the packaged host page by page in both color schemes,
+      # for the prototype-vs-build comparison (issue #64). It asserts that
+      # every sidebar page is one click away and the native close works.
+      - name: Capture every host page for the prototype comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          dbus-run-session -- bash scripts/e2e/capture-host.sh
       - name: Upload Linux evidence
         if: always()
         uses: actions/upload-artifact@v4
