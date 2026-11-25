@@ -47,3 +47,6 @@ app/keys/updater/private.pem
 .rivet/
 macos-host/
 windows/
+
+# design prototype dev dependencies (installed by npm ci)
+design/node_modules/
