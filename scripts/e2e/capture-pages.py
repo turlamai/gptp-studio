@@ -157,24 +157,69 @@ def geometry(row):
     return report
 
 
+def absolute_box(node):
+    """The node's box in screen coordinates.
+
+    The host's GTK reports every box relative to its parent (a row inside
+    the sidebar says x=0, y=0), so the offsets are summed up the chain to
+    the window frame, which sits at the origin on the capture server.
+    """
+    total_x = total_y = 0
+    box = extents(node)
+    if box is None:
+        return None
+    size = box[2:]
+    current = node
+    for _ in range(40):
+        current_box = extents(current)
+        if current_box is None:
+            return None
+        total_x += current_box[0]
+        total_y += current_box[1]
+        if role(current) == "frame":
+            return [total_x, total_y, size[0], size[1]]
+        try:
+            parent = current.parent
+        except Exception:
+            return None
+        if parent is None:
+            return None
+        current = parent
+    return None
+
+
 def click(row, frame, sidebar_fraction):
-    """Click the row, or the node inside it, that lies in the sidebar zone."""
+    """Click the node inside the row whose box lies in the sidebar zone."""
     frame_x, frame_y, frame_width, frame_height = frame
-    for node in walk(row):
-        box = extents(node)
-        if box is None or box[2] <= 0 or box[3] <= 0:
-            continue
-        center_x, center_y = box[0] + box[2] // 2, box[1] + box[3] // 2
-        if (
-            frame_x <= center_x <= frame_x + int(frame_width * sidebar_fraction)
-            and frame_y <= center_y <= frame_y + frame_height
-        ):
-            subprocess.run(
-                ["xdotool", "mousemove", str(center_x), str(center_y), "click", "1"],
-                check=True,
+    target = absolute_box(row)
+    if target is None or target[2] <= 0 or target[3] <= 0:
+        raise AssertionError(f"row {row.name!r} has no box")
+    center_x, center_y = target[0] + target[2] // 2, target[1] + target[3] // 2
+    if not (
+        frame_x <= center_x <= frame_x + int(frame_width * sidebar_fraction)
+        and frame_y <= center_y <= frame_y + frame_height
+    ):
+        raise AssertionError(f"row {row.name!r} is not in the sidebar zone: {target}")
+    subprocess.run(
+        ["xdotool", "mousemove", str(center_x), str(center_y), "click", "1"],
+        check=True,
+    )
+    return [center_x, center_y]
+
+
+def panels(window):
+    """Page panels with their showing state, for failure reports."""
+    report = []
+    for node in walk(window):
+        if role(node) == "panel" and (node.name or ""):
+            try:
+                states = sorted(node.getState().getStates())
+            except Exception:
+                states = None
+            report.append(
+                {"name": node.name or "", "showing": is_showing(node), "states": states}
             )
-            return [center_x, center_y]
-    raise AssertionError(f"no node of row {row.name!r} reports a box in the sidebar zone")
+    return report
 
 
 def main():
@@ -247,8 +292,11 @@ def main():
             if find_row(window, page) is not row:
                 raise AssertionError(f"sidebar row {index} is not {page!r}")
             boxes = geometry(row)
-            if activate(row):
-                method, clicked = "at-spi action", None
+            boxes.append({"role": "list item (absolute)", "box": absolute_box(row)})
+            action_ran = activate(row)
+            clicked = None
+            if action_ran:
+                method = "at-spi action"
             else:
                 method = "mouse click"
                 clicked = click(row, frame, args.sidebar_fraction)
@@ -266,7 +314,9 @@ def main():
                 )
             except AssertionError as error:
                 raise AssertionError(
-                    f"{error}; row geometry: {json.dumps(boxes, ensure_ascii=False)}"
+                    f"{error}; action ran: {action_ran}; clicked: {clicked}; "
+                    f"row geometry: {json.dumps(boxes, ensure_ascii=False)}; "
+                    f"panels: {json.dumps(panels(window), ensure_ascii=False)}"
                 )
             time.sleep(args.settle)
             file = f"{index:02d}.png"
