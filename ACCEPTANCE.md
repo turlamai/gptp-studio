@@ -169,7 +169,10 @@ raco rivet generate && test -s linux/GeneratedBackend.hpp
 raco rivet acceptance --json   # 完整 Linux 产品门
 ```
 
-GitHub Actions（ubuntu-24.04，amd64 + arm64）必须在 PR 与 main 上保持全绿：全部测试、GTK4 宿主构建、生成客户端存在性。发布流水线（tag 触发，rivet 按 `RIVET_PIN` 固定在发布 tag）额外执行：`raco rivet release --development` 的打包（deb + rpm + AppImage + tar.gz + zip + SBOM）+ 自检 + Doctor 冒烟、amd64 deb 实装冒烟、逐资产 `.sha256` + 聚合 `SHA256SUMS`、签名 feed 生成与自验。
+GitHub Actions（ubuntu-24.04）必须在 PR 与 main 上保持全绿：
+
+- `CI`：全部测试、GTK4 宿主构建、生成客户端存在性、原型交互回归。
+- `Product Acceptance`：`raco rivet acceptance --json` 五个套件，其中原生 UI 套件在 headless Wayland 上经 AT-SPI 驱动打包后的宿主；随后 `scripts/e2e/capture-host.sh` 逐页点击并抓取亮暗两套截图，随证据一并上传为 artifact。截图只作原型对照证据（#64），不替代人工走查与 §0–§6 的本地实测。发布流水线（tag 触发，rivet 按 `RIVET_PIN` 固定在发布 tag）额外执行：`raco rivet release --development` 的打包（deb + rpm + AppImage + tar.gz + zip + SBOM）+ 自检 + Doctor 冒烟、amd64 deb 实装冒烟、逐资产 `.sha256` + 聚合 `SHA256SUMS`、签名 feed 生成与自验。
 
 ## 8. 精度声明
 
