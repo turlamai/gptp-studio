@@ -86,6 +86,45 @@ def press(node):
         raise AssertionError(f"AT-SPI action failed for {node.name!r}")
 
 
+def sidebar_rows(window):
+    """The navigation list: the first list whose items are all list items.
+
+    The host's rows expose no accessible name of their own (their label is a
+    child), so callers match on the label text inside the row.
+    """
+    for node in walk(window):
+        if role(node) != "list":
+            continue
+        items = [child for child in children(node) if role(child) == "list item"]
+        if items:
+            return items
+    return []
+
+
+def find_row(window, page):
+    for row in sidebar_rows(window):
+        if any((node.name or "") == page for node in walk(row)):
+            return row
+    return None
+
+
+def labelled(node):
+    """The row, or when it reports no geometry, the label inside it."""
+    x, y, width, height = extents(node)
+    if width > 0 and height > 0:
+        return node
+    return next(
+        (
+            child
+            for child in walk(node)
+            if (child.name or "")
+            and extents(child)[2] > 0
+            and extents(child)[3] > 0
+        ),
+        node,
+    )
+
+
 def extents(node):
     box = node.queryComponent().getExtents(XY_SCREEN)
     return [int(box[0]), int(box[1]), int(box[2]), int(box[3])]
@@ -144,13 +183,14 @@ def main():
     time.sleep(1.0)
 
     captures = []
+    rows = wait_for(
+        f"{len(args.pages)} sidebar rows",
+        lambda: (sidebar_rows(window) if len(sidebar_rows(window)) == len(args.pages) else None),
+    )
     for index, page in enumerate(args.pages, start=1):
-        # The stack exposes the same titles, so insist on the sidebar row.
-        row = wait_for(
-            f"{page} sidebar row",
-            lambda: find_named(window, page, "list item"),
-        )
-        clicked = click(row)
+        if (rows[index - 1].name or "") == page or find_row(window, page) is not rows[index - 1]:
+            raise AssertionError(f"sidebar row {index} is not {page!r}")
+        clicked = click(labelled(rows[index - 1]))
         time.sleep(args.settle)
         file = f"{index:02d}-{slug(page)}.png"
         subprocess.run(
@@ -171,6 +211,7 @@ def main():
                 "language": args.language,
                 "scheme": args.scheme,
                 "frame": extents(window),
+                "row_names": [row.name or "" for row in rows],
                 "captures": captures,
             },
             ensure_ascii=False,
