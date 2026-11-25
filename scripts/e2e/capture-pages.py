@@ -2,17 +2,17 @@
 """Capture one screenshot per sidebar page of the running GTK4 host.
 
 The sidebar rows select on a click gesture with selection mode off, so this
-driver reads each row's on-screen geometry through AT-SPI, clicks its center
-with xdotool and grabs the root window. The pictures feed the
-prototype-vs-build comparison (issue #64); they are evidence, not an
-assertion of visual parity.
+driver selects each row through its AT-SPI action when it has one, and
+otherwise clicks the center of its on-screen box (read through AT-SPI) with
+xdotool. A page is captured only once its panel is on screen. The pictures
+feed the prototype-vs-build comparison (issue #64); they are evidence, not
+an assertion of visual parity.
 
-Unlike linux-atspi.py this script makes no product assertions beyond "every
-page is reachable by a click" and "the native close works".
+The assertions are: every page is reachable by one selection, and the native
+close works.
 """
 import argparse
 import json
-import re
 import subprocess
 import time
 from pathlib import Path
@@ -108,42 +108,73 @@ def find_row(window, page):
     return None
 
 
-def labelled(node):
-    """The row, or when it reports no geometry, the label inside it."""
-    x, y, width, height = extents(node)
-    if width > 0 and height > 0:
-        return node
-    return next(
-        (
-            child
-            for child in walk(node)
-            if (child.name or "")
-            and extents(child)[2] > 0
-            and extents(child)[3] > 0
-        ),
-        node,
-    )
-
-
 def extents(node):
-    box = node.queryComponent().getExtents(XY_SCREEN)
+    try:
+        box = node.queryComponent().getExtents(XY_SCREEN)
+    except Exception:
+        return None
     return [int(box[0]), int(box[1]), int(box[2]), int(box[3])]
 
 
-def click(node):
-    x, y, width, height = extents(node)
-    if width <= 0 or height <= 0:
-        raise AssertionError(f"row {node.name!r} has no on-screen geometry")
-    center_x, center_y = x + width // 2, y + height // 2
-    subprocess.run(
-        ["xdotool", "mousemove", str(center_x), str(center_y), "click", "1"],
-        check=True,
-    )
-    return [center_x, center_y]
+def is_showing(node):
+    try:
+        return node.getState().contains(pyatspi.STATE_SHOWING)
+    except Exception:
+        return False
 
 
-def slug(name):
-    return re.sub(r"[^a-z0-9]+", "-", name.casefold()).strip("-") or "page"
+def visible_page(window, pages):
+    """The one page panel that is on screen, or None."""
+    shown = set()
+    for node in walk(window):
+        if role(node) == "panel" and (node.name or "") in pages and is_showing(node):
+            shown.add(node.name)
+    return shown.pop() if len(shown) == 1 else None
+
+
+def activate(row):
+    """Select the row through its AT-SPI action when it has one.
+
+    Returns True when an action ran. Otherwise the caller falls back to a
+    real click.
+    """
+    try:
+        actions = row.queryAction()
+    except Exception:
+        return False
+    if actions.nActions < 1:
+        return False
+    return bool(actions.doAction(0))
+
+
+def geometry(row):
+    """Every reported box in and under the row, for the manifest."""
+    report = []
+    for node in walk(row):
+        box = extents(node)
+        if box is not None:
+            report.append({"role": role(node), "name": node.name or "", "box": box})
+    return report
+
+
+def click(row, frame, sidebar_fraction):
+    """Click the row, or the node inside it, that lies in the sidebar zone."""
+    frame_x, frame_y, frame_width, frame_height = frame
+    for node in walk(row):
+        box = extents(node)
+        if box is None or box[2] <= 0 or box[3] <= 0:
+            continue
+        center_x, center_y = box[0] + box[2] // 2, box[1] + box[3] // 2
+        if (
+            frame_x <= center_x <= frame_x + int(frame_width * sidebar_fraction)
+            and frame_y <= center_y <= frame_y + frame_height
+        ):
+            subprocess.run(
+                ["xdotool", "mousemove", str(center_x), str(center_y), "click", "1"],
+                check=True,
+            )
+            return [center_x, center_y]
+    raise AssertionError(f"no node of row {row.name!r} reports a box in the sidebar zone")
 
 
 def main():
@@ -164,6 +195,12 @@ def main():
         help="accessible name of the native window close button",
     )
     parser.add_argument("--settle", type=float, default=1.5)
+    parser.add_argument(
+        "--sidebar-fraction",
+        type=float,
+        default=0.35,
+        help="width share of the window in which a navigation row may lie",
+    )
     parser.add_argument("pages", nargs="+", help="sidebar labels in click order")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -182,43 +219,71 @@ def main():
     )
     time.sleep(1.0)
 
-    captures = []
     rows = wait_for(
         f"{len(args.pages)} sidebar rows",
         lambda: (sidebar_rows(window) if len(sidebar_rows(window)) == len(args.pages) else None),
     )
-    for index, page in enumerate(args.pages, start=1):
-        if (rows[index - 1].name or "") == page or find_row(window, page) is not rows[index - 1]:
-            raise AssertionError(f"sidebar row {index} is not {page!r}")
-        clicked = click(labelled(rows[index - 1]))
-        time.sleep(args.settle)
-        file = f"{index:02d}-{slug(page)}.png"
-        subprocess.run(
-            ["import", "-window", "root", str(args.output / file)], check=True
+    frame = extents(window)
+    manifest = {
+        "platform": "linux",
+        "language": args.language,
+        "scheme": args.scheme,
+        "frame": frame,
+        "row_names": [row.name or "" for row in rows],
+        "captures": [],
+    }
+
+    def write_manifest():
+        (args.output / "captures.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        captures.append({"page": page, "file": file, "clicked": clicked})
 
-    close = wait_for(
-        "native Close button",
-        lambda: find_named(window, args.close_name, "push button"),
-    )
-    press(close)
+    # Every page must end up on screen; a click that lands elsewhere is a
+    # failure, not a picture of the wrong page.
+    last_click_y = None
+    try:
+        for index, page in enumerate(args.pages, start=1):
+            row = rows[index - 1]
+            if find_row(window, page) is not row:
+                raise AssertionError(f"sidebar row {index} is not {page!r}")
+            boxes = geometry(row)
+            if activate(row):
+                method, clicked = "at-spi action", None
+            else:
+                method = "mouse click"
+                clicked = click(row, frame, args.sidebar_fraction)
+                if last_click_y is not None and clicked[1] <= last_click_y:
+                    raise AssertionError(
+                        f"rows {index - 1} and {index} report the same spot; geometry: "
+                        + json.dumps(boxes, ensure_ascii=False)
+                    )
+                last_click_y = clicked[1]
+            try:
+                wait_for(
+                    f"{page!r} page on screen",
+                    lambda: visible_page(window, args.pages) == page,
+                    timeout=10.0,
+                )
+            except AssertionError as error:
+                raise AssertionError(
+                    f"{error}; row geometry: {json.dumps(boxes, ensure_ascii=False)}"
+                )
+            time.sleep(args.settle)
+            file = f"{index:02d}.png"
+            subprocess.run(
+                ["import", "-window", "root", str(args.output / file)], check=True
+            )
+            manifest["captures"].append(
+                {"page": page, "file": file, "method": method, "clicked": clicked}
+            )
 
-    (args.output / "captures.json").write_text(
-        json.dumps(
-            {
-                "platform": "linux",
-                "language": args.language,
-                "scheme": args.scheme,
-                "frame": extents(window),
-                "row_names": [row.name or "" for row in rows],
-                "captures": captures,
-            },
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
+        close = wait_for(
+            "native Close button",
+            lambda: find_named(window, args.close_name, "push button"),
+        )
+        press(close)
+    finally:
+        write_manifest()
 
 
 if __name__ == "__main__":
