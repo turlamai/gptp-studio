@@ -2695,8 +2695,13 @@ void on_activate(GtkApplication* app, gpointer) {
       }
       auto const* name =
           static_cast<char const*>(g_object_get_data(G_OBJECT(it), "page-name"));
+      // g_state.stack is assigned at the end of on_activate, so this uses
+      // the local stack rather than on_nav_row_chosen.
       if (name != nullptr && std::string_view(name) == dev_page) {
-        on_nav_row_chosen(GTK_LIST_BOX(nav), it);
+        gtk_widget_remove_css_class(GTK_WIDGET(first_row), "nav-active");
+        gtk_widget_add_css_class(GTK_WIDGET(it), "nav-active");
+        gtk_stack_set_visible_child_full(GTK_STACK(stack), name,
+                                         GTK_STACK_TRANSITION_TYPE_NONE);
         break;
       }
     }
