@@ -2682,6 +2682,25 @@ void on_activate(GtkApplication* app, gpointer) {
   if (first_row != nullptr) {
     gtk_widget_add_css_class(GTK_WIDGET(first_row), "nav-active");
   }
+  // Dev capture hook: open on a named page so headless acceptance can
+  // picture each one without a pointer. The rows report no usable AT-SPI
+  // geometry on X11 and every stack page reports "showing", so a driver
+  // cannot tell where a row is or which page is up. Never active in
+  // packaged builds (the variable is not set there).
+  if (const char* dev_page = std::getenv("GPTP_DEV_PAGE")) {
+    for (int index = 0;; ++index) {
+      GtkListBoxRow* it = gtk_list_box_get_row_at_index(GTK_LIST_BOX(nav), index);
+      if (it == nullptr) {
+        break;
+      }
+      auto const* name =
+          static_cast<char const*>(g_object_get_data(G_OBJECT(it), "page-name"));
+      if (name != nullptr && std::string_view(name) == dev_page) {
+        on_nav_row_chosen(GTK_LIST_BOX(nav), it);
+        break;
+      }
+    }
+  }
 
   // Footer status bar: session/error surface, out of the content's way.
   auto* status = gtk_label_new(tr("status-starting-backend").c_str());
