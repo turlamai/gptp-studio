@@ -23,7 +23,7 @@
   /* 其它 */
   --shadow: 0 12px 32px rgba(13,32,57,.22);
   --font-ui: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", "Ubuntu Mono", monospace;
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", "Ubuntu Mono", "Noto Sans Mono CJK SC", "Noto Sans CJK SC", "Microsoft YaHei", monospace;
   --r-s: 4px; --r-m: 8px; --r-l: 12px;
   --dur: 140ms;
 }
@@ -404,3 +404,11 @@ dialog::backdrop { background: rgba(13,32,57,.45); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---- temperament profile pass ---- */
+/* typography baseline (family standard 2026-11-26-temperament-profiles): CJK/Latin spacing and kinsoku come from the rendering layer,
+   never from typed spaces (§4, §10). Values stay in the token block above. */
+body { text-autospace: normal; line-break: strict; }
+::selection { background: var(--accent-soft); color: var(--ink); }
+/* Paired neutral scrollbar for both themes; thin and non-distracting. */
+html { scrollbar-color: var(--line) transparent; }
