@@ -250,7 +250,8 @@ tbody tr:hover td { background: var(--hover); }
 .packet-table tr.selected td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
 .kv { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 6px 16px; font-size: 14px; }
 .kv dt { color: var(--mute); font-size: 13px; }
-.kv dd, .decode dd { overflow-wrap: anywhere; }
+.kv dd { overflow-wrap: break-word; }
+.decode dd { overflow-wrap: anywhere; }
 .decode { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 6px 16px; font-size: 13px; }
 .decode dt { font: 400 12.5px/1.5 var(--font-mono); color: var(--mute); }
 .decode dd { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
@@ -371,6 +372,11 @@ dialog::backdrop { background: rgba(13,32,57,.45); }
 }
 
 /* ==== 小窗口重排：导航与面板收成单列，表格只在自身区域横向滚动 ==== */
+/* 1101–1200px（含宿主默认宽 1120×760）：双栏下右栏放不下 gmIdentity 这类整段 token，收窄标签列给值列让宽。 */
+@media (max-width: 1200px) {
+  .columns { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+  .kv { grid-template-columns: 88px minmax(0, 1fr); gap: 6px 12px; }
+}
 @media (max-width: 1100px) {
   .metrics, .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metric:nth-child(3) { padding-left: 0; border-left: 0; }
