@@ -91,8 +91,15 @@ button, input, select { font: inherit; color: inherit; }
 .top-meta { font-size: 13px; color: rgba(255,255,255,.86); }
 .session-indicator { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap; }
 .session-indicator i { width: 8px; height: 8px; border-radius: 50%; }
-.topbar .btn { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); color: #fff; }
-.topbar .btn:hover { background: rgba(255,255,255,.22); }
+/* Quiet icon button (theme toggle): no chrome at rest, tint on hover, white ring because the accent ring is invisible on the brand band */
+.topbar .iconbtn {
+  display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px;
+  border: 0; border-radius: var(--r-m); background: transparent; color: rgba(255,255,255,.86);
+  cursor: pointer; transition: background var(--dur) ease, color var(--dur) ease;
+}
+.topbar .iconbtn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.topbar .iconbtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.topbar .iconbtn .od-icon { width: 16px; height: 16px; }
 
 .sidebar {
   display: flex; flex-direction: column; gap: 16px; padding: 16px 0 12px;
@@ -168,7 +175,7 @@ button, input, select { font: inherit; color: inherit; }
 }
 .btn .od-icon { width: 16px; height: 16px; }
 .btn:hover:not(:disabled) { background: var(--hover); }
-.btn.primary, .topbar .btn.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; }
+.btn.primary { background: var(--accent-fill); border-color: var(--accent-fill); color: #fff; }
 .btn.primary:hover:not(:disabled) { filter: brightness(1.12); }
 .btn.danger { background: var(--danger-fill); border-color: var(--danger-fill); color: #fff; }
 .btn.danger:hover:not(:disabled) { filter: brightness(1.12); }
@@ -222,7 +229,7 @@ input:focus-visible, select:focus-visible {
 }
 .tabs { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--r-m); background: var(--field); }
 .tab {
-  height: 26px; padding: 0 10px; border: 0; border-radius: 6px;
+  height: 28px; padding: 0 10px; border: 0; border-radius: 6px;
   background: none; color: var(--mute); font-size: 13px; font-weight: 500; cursor: pointer;
 }
 .tab[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line-control); }
@@ -285,7 +292,7 @@ tbody tr:hover td { background: var(--hover); }
 .notice p { margin-top: 2px; color: var(--mute); }
 .notice > .od-icon { color: var(--mute); }
 .chart { display: block; width: 100%; height: auto; }
-.chart text { font: 11px var(--font-mono); fill: var(--mute); }
+.chart text { font: calc(12px * var(--chart-scale, 1)) var(--font-mono); fill: var(--mute); } /* --chart-scale = 720 / rendered width, set by app.js, keeps labels at 12 CSS px */
 .gridline { stroke: var(--line); }
 .threshold { stroke: var(--danger); stroke-dasharray: 4 4; opacity: .7; }
 .series { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
@@ -387,5 +394,5 @@ dialog::backdrop { background: rgba(13,32,57,.45); }
   .footer { flex-wrap: wrap; padding: 6px 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; animation: none !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
