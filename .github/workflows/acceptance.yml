@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  RIVET_PIN: v0.16.0
+  RIVET_PIN: v0.17.0
 jobs:
   linux:
     name: Linux packaged GTK4 acceptance
@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up embeddable Racket CS
-        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.16.0
+        uses: turlamai/rivet/.github/actions/setup-embed-racket@v0.17.0
       - name: Install native and pinned Racket dependencies
         shell: bash
         run: |
