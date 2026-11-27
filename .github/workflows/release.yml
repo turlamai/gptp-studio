@@ -23,7 +23,7 @@ concurrency:
 # The setup-embed-racket action refs stay hardcoded: GitHub does not
 # expand env in `uses:`.
 env:
-  RIVET_PIN: v0.17.0
+  RIVET_PIN: 0db8b76396f70dde6d0a9c7935a0bd91d8c066f3
 
 jobs:
   verify:
