@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -49,6 +50,7 @@ jobs:
       - name: Verify tag and app version alignment
         shell: bash
         run: |
+          [[ "$GITHUB_REF" == refs/tags/v* ]] || { echo "::error::Release requires a version tag"; exit 1; }
           bash -n scripts/check-release-version.sh
           bash scripts/check-release-version.sh "$GITHUB_REF_NAME"
 
