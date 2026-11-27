@@ -77,7 +77,7 @@ jobs:
             file
 
       - name: Install Rivet (released package)
-        run: raco pkg install --auto --no-docs --ignore-checksums 'https://github.com/turlamai/rivet.git#v0.17.0'
+        run: raco pkg install --auto --no-docs --ignore-checksums 'https://github.com/turlamai/rivet.git#0db8b76396f70dde6d0a9c7935a0bd91d8c066f3'
 
       - name: Backend tests
         run: raco test tests/*.rkt
